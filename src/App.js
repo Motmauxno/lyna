@@ -22,7 +22,7 @@ function App() {
     { id: 'FAC-003', client: 'Pharma Plus', montant: '78 000', statut: 'En retard', moyen: 'Mobile Money' },
   ]);
 
-  const [livraisons, setLivraisons] = useState([
+  const [livraisons, = useState([
     { id: 'LIV-01', destination: 'Plateau, Dakar', chauffeur: 'Ibou D.', statut: 'En route', heure: '14:30' },
     { id: 'LIV-02', destination: 'Almadies', chauffeur: 'Cheikh N.', statut: 'Livré', heure: '13:15' },
     { id: 'LIV-03', destination: 'Pikine', chauffeur: 'Modou F.', statut: 'En attente', heure: '16:00' },
