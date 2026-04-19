@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Auth from './Auth';
 import { supabase } from './supabase';
+import Auth from './Auth';
 
 function App() {
   const [page, setPage] = useState('dashboard');
@@ -8,7 +8,8 @@ function App() {
   const [produits, setProduits] = useState([]);
   const [factures, setFactures] = useState([]);
   const [loading, setLoading] = useState(true);
-const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);
+
   const [nomCmd, setNomCmd] = useState('');
   const [montantCmd, setMontantCmd] = useState('');
   const [nomProd, setNomProd] = useState('');
@@ -25,18 +26,19 @@ const [user, setUser] = useState(null);
   ];
 
   useEffect(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    setUser(session?.user ?? null);
-    if (session?.user) chargerDonnees();
-    else setLoading(false);
-  });
-}, []);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) chargerDonnees(session.user.id);
+      else setLoading(false);
+    });
+  }, []);
 
-  async function chargerDonnees() {
+  async function chargerDonnees(uid) {
     setLoading(true);
-    const { data: cmds } = await supabase.from('commandes').select('*').order('created_at', { ascending: false });
-    const { data: prods } = await supabase.from('produits').select('*').order('created_at', { ascending: false });
-    const { data: facts } = await supabase.from('factures').select('*').order('created_at', { ascending: false });
+    const id = uid || user?.id;
+    const { data: cmds } = await supabase.from('commandes').select('*').eq('user_id', id).order('created_at', { ascending: false });
+    const { data: prods } = await supabase.from('produits').select('*').eq('user_id', id).order('created_at', { ascending: false });
+    const { data: facts } = await supabase.from('factures').select('*').eq('user_id', id).order('created_at', { ascending: false });
     if (cmds) setCommandes(cmds);
     if (prods) setProduits(prods);
     if (facts) setFactures(facts);
@@ -46,7 +48,7 @@ const [user, setUser] = useState(null);
   async function ajouterCommande() {
     if (!nomCmd || !montantCmd) return;
     const { data } = await supabase.from('commandes').insert([
-      { client: nomCmd, montant: parseInt(montantCmd), statut: 'Nouveau' }
+      { client: nomCmd, montant: parseInt(montantCmd), statut: 'Nouveau', user_id: user.id }
     ]).select();
     if (data) setCommandes([data[0], ...commandes]);
     setNomCmd(''); setMontantCmd('');
@@ -55,7 +57,7 @@ const [user, setUser] = useState(null);
   async function ajouterProduit() {
     if (!nomProd || !prixProd) return;
     const { data } = await supabase.from('produits').insert([
-      { nom: nomProd, prix: parseInt(prixProd), stock: parseInt(stockProd) || 0 }
+      { nom: nomProd, prix: parseInt(prixProd), stock: parseInt(stockProd) || 0, user_id: user.id }
     ]).select();
     if (data) setProduits([data[0], ...produits]);
     setNomProd(''); setPrixProd(''); setStockProd('');
@@ -64,10 +66,16 @@ const [user, setUser] = useState(null);
   async function ajouterFacture() {
     if (!clientFac || !montantFac) return;
     const { data } = await supabase.from('factures').insert([
-      { client: clientFac, montant: parseInt(montantFac), statut: 'En attente', moyen: moyenFac }
+      { client: clientFac, montant: parseInt(montantFac), statut: 'En attente', moyen: moyenFac, user_id: user.id }
     ]).select();
     if (data) setFactures([data[0], ...factures]);
     setClientFac(''); setMontantFac('');
+  }
+
+  async function deconnexion() {
+    await supabase.auth.signOut();
+    setUser(null);
+    setCommandes([]); setProduits([]); setFactures([]);
   }
 
   const s = {
@@ -102,12 +110,14 @@ const [user, setUser] = useState(null);
 
   const navItems = [
     { id: 'dashboard', label: 'Accueil', icon: '🏠' },
-{ id: 'commandes', label: 'Ventes', icon: '🛒' },
-{ id: 'catalogue', label: 'Stock', icon: '📦' },
-{ id: 'facturation', label: 'Factures', icon: '🧾' },
-{ id: 'livraison', label: 'Livraison', icon: '🚚' },
+    { id: 'commandes', label: 'Ventes', icon: '🛒' },
+    { id: 'catalogue', label: 'Stock', icon: '📦' },
+    { id: 'facturation', label: 'Factures', icon: '🧾' },
+    { id: 'livraison', label: 'Livraison', icon: '🚚' },
   ];
-if (!user) return <Auth onConnexion={() => { setUser(true); chargerDonnees(); }} />;
+
+  if (!user) return <Auth onConnexion={(u) => { setUser(u); chargerDonnees(u.id); }} />;
+
   if (loading) return (
     <div style={{ ...s.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center' }}>
@@ -121,12 +131,9 @@ if (!user) return <Auth onConnexion={() => { setUser(true); chargerDonnees(); }}
     <div style={s.wrap}>
       <div style={s.nav}>
         <h1 style={s.logo}><span style={{ color: '#1D9E75' }}>LY</span>NA</h1>
-        <button
-  onClick={async () => { await supabase.auth.signOut(); setUser(null); }}
-  style={{ fontSize: '12px', color: '#888', background: '#f5f5f5', padding: '4px 10px', borderRadius: '999px', border: 'none', cursor: 'pointer' }}
->
-  Déconnexion
-</button>
+        <button onClick={deconnexion} style={{ fontSize: '12px', color: '#888', background: '#f5f5f5', padding: '4px 10px', borderRadius: '999px', border: 'none', cursor: 'pointer' }}>
+          Déconnexion
+        </button>
       </div>
 
       {page === 'dashboard' && (
@@ -148,9 +155,7 @@ if (!user) return <Auth onConnexion={() => { setUser(true); chargerDonnees(); }}
             <div style={s.metric}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Factures</p>
               <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{factures.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27' }}>
-                {factures.filter(f => f.statut === 'En retard').length} en retard
-              </p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27' }}>{factures.filter(f => f.statut === 'En retard').length} en retard</p>
             </div>
             <div style={s.metric}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Livraisons</p>
