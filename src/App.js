@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Auth from './Auth';
 import { supabase } from './supabase';
 
 function App() {
@@ -7,7 +8,7 @@ function App() {
   const [produits, setProduits] = useState([]);
   const [factures, setFactures] = useState([]);
   const [loading, setLoading] = useState(true);
-
+const [user, setUser] = useState(null);
   const [nomCmd, setNomCmd] = useState('');
   const [montantCmd, setMontantCmd] = useState('');
   const [nomProd, setNomProd] = useState('');
@@ -24,8 +25,12 @@ function App() {
   ];
 
   useEffect(() => {
-    chargerDonnees();
-  }, []);
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setUser(session?.user ?? null);
+    if (session?.user) chargerDonnees();
+    else setLoading(false);
+  });
+}, []);
 
   async function chargerDonnees() {
     setLoading(true);
@@ -102,7 +107,7 @@ function App() {
 { id: 'facturation', label: 'Factures', icon: '🧾' },
 { id: 'livraison', label: 'Livraison', icon: '🚚' },
   ];
-
+if (!user) return <Auth onConnexion={() => { setUser(true); chargerDonnees(); }} />;
   if (loading) return (
     <div style={{ ...s.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center' }}>
@@ -116,7 +121,12 @@ function App() {
     <div style={s.wrap}>
       <div style={s.nav}>
         <h1 style={s.logo}><span style={{ color: '#1D9E75' }}>LY</span>NA</h1>
-        <span style={{ fontSize: '12px', color: '#888', background: '#f5f5f5', padding: '4px 10px', borderRadius: '999px' }}>Chez Aminata</span>
+        <button
+  onClick={async () => { await supabase.auth.signOut(); setUser(null); }}
+  style={{ fontSize: '12px', color: '#888', background: '#f5f5f5', padding: '4px 10px', borderRadius: '999px', border: 'none', cursor: 'pointer' }}
+>
+  Déconnexion
+</button>
       </div>
 
       {page === 'dashboard' && (
