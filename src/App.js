@@ -1,32 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from './supabase';
 
 function App() {
   const [page, setPage] = useState('dashboard');
-
-  const [commandes, setCommandes] = useState([
-    { id: '#143', client: 'Fatou Ba', montant: '7 000', statut: 'Nouveau', couleur: '#0C447C', bg: '#E6F1FB' },
-    { id: '#142', client: 'Moussa Diop', montant: '3 500', statut: 'En prép.', couleur: '#633806', bg: '#FAEEDA' },
-    { id: '#141', client: 'Aïssatou N.', montant: '6 500', statut: 'Livré', couleur: '#27500A', bg: '#EAF3DE' },
-  ]);
-
-  const [produits, setProduits] = useState([
-    { id: 1, nom: 'Thiéboudienne', prix: '3 500', stock: 12 },
-    { id: 2, nom: 'Yassa poulet', prix: '3 000', stock: 8 },
-    { id: 3, nom: 'Mafé', prix: '3 500', stock: 3 },
-    { id: 4, nom: 'Bissap', prix: '500', stock: 30 },
-  ]);
-
-  const [factures, setFactures] = useState([
-    { id: 'FAC-001', client: 'Boutique Sow', montant: '45 000', statut: 'Payé', moyen: 'Wave' },
-    { id: 'FAC-002', client: 'Import Diallo', montant: '120 000', statut: 'En attente', moyen: 'Orange Money' },
-    { id: 'FAC-003', client: 'Pharma Plus', montant: '78 000', statut: 'En retard', moyen: 'Mobile Money' },
-  ]);
-
-const [livraisons] = useState([
-    { id: 'LIV-01', destination: 'Plateau, Dakar', chauffeur: 'Ibou D.', statut: 'En route', heure: '14:30' },
-    { id: 'LIV-02', destination: 'Almadies', chauffeur: 'Cheikh N.', statut: 'Livré', heure: '13:15' },
-    { id: 'LIV-03', destination: 'Pikine', chauffeur: 'Modou F.', statut: 'En attente', heure: '16:00' },
-  ]);
+  const [commandes, setCommandes] = useState([]);
+  const [produits, setProduits] = useState([]);
+  const [factures, setFactures] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [nomCmd, setNomCmd] = useState('');
   const [montantCmd, setMontantCmd] = useState('');
@@ -37,27 +17,51 @@ const [livraisons] = useState([
   const [montantFac, setMontantFac] = useState('');
   const [moyenFac, setMoyenFac] = useState('Wave');
 
-  function ajouterCommande() {
+  const livraisons = [
+    { id: 'LIV-01', destination: 'Plateau, Dakar', chauffeur: 'Ibou D.', statut: 'En route', heure: '14:30' },
+    { id: 'LIV-02', destination: 'Almadies', chauffeur: 'Cheikh N.', statut: 'Livré', heure: '13:15' },
+    { id: 'LIV-03', destination: 'Pikine', chauffeur: 'Modou F.', statut: 'En attente', heure: '16:00' },
+  ];
+
+  useEffect(() => {
+    chargerDonnees();
+  }, []);
+
+  async function chargerDonnees() {
+    setLoading(true);
+    const { data: cmds } = await supabase.from('commandes').select('*').order('created_at', { ascending: false });
+    const { data: prods } = await supabase.from('produits').select('*').order('created_at', { ascending: false });
+    const { data: facts } = await supabase.from('factures').select('*').order('created_at', { ascending: false });
+    if (cmds) setCommandes(cmds);
+    if (prods) setProduits(prods);
+    if (facts) setFactures(facts);
+    setLoading(false);
+  }
+
+  async function ajouterCommande() {
     if (!nomCmd || !montantCmd) return;
-    const nouvelle = {
-      id: '#' + (parseInt(commandes[0].id.slice(1)) + 1),
-      client: nomCmd, montant: montantCmd,
-      statut: 'Nouveau', couleur: '#0C447C', bg: '#E6F1FB'
-    };
-    setCommandes([nouvelle, ...commandes]);
+    const { data } = await supabase.from('commandes').insert([
+      { client: nomCmd, montant: parseInt(montantCmd), statut: 'Nouveau' }
+    ]).select();
+    if (data) setCommandes([data[0], ...commandes]);
     setNomCmd(''); setMontantCmd('');
   }
 
-  function ajouterProduit() {
+  async function ajouterProduit() {
     if (!nomProd || !prixProd) return;
-    setProduits([...produits, { id: produits.length + 1, nom: nomProd, prix: prixProd, stock: parseInt(stockProd) || 0 }]);
+    const { data } = await supabase.from('produits').insert([
+      { nom: nomProd, prix: parseInt(prixProd), stock: parseInt(stockProd) || 0 }
+    ]).select();
+    if (data) setProduits([data[0], ...produits]);
     setNomProd(''); setPrixProd(''); setStockProd('');
   }
 
-  function ajouterFacture() {
+  async function ajouterFacture() {
     if (!clientFac || !montantFac) return;
-    const num = 'FAC-00' + (factures.length + 1);
-    setFactures([{ id: num, client: clientFac, montant: montantFac, statut: 'En attente', moyen: moyenFac }, ...factures]);
+    const { data } = await supabase.from('factures').insert([
+      { client: clientFac, montant: parseInt(montantFac), statut: 'En attente', moyen: moyenFac }
+    ]).select();
+    if (data) setFactures([data[0], ...factures]);
     setClientFac(''); setMontantFac('');
   }
 
@@ -73,18 +77,9 @@ const [livraisons] = useState([
     input: { flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', minWidth: '80px', background: '#fff' },
     btn: { padding: '8px 16px', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' },
     row: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' },
-    badge: (bg, col) => ({ fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: bg, color: col, whiteSpace: 'nowrap' }),
     metric: { background: '#fff', borderRadius: '12px', padding: '14px', border: '1px solid #eee', flex: 1 },
     sectionTitle: { fontSize: '14px', fontWeight: '500', margin: '0 0 12px', color: '#111' },
   };
-
-  const navItems = [
-    { id: 'dashboard', label: 'Accueil', icon: '⊞' },
-    { id: 'commandes', label: 'Ventes', icon: '◎' },
-    { id: 'catalogue', label: 'Stock', icon: '▦' },
-    { id: 'facturation', label: 'Factures', icon: '◈' },
-    { id: 'livraison', label: 'Livraison', icon: '⬡' },
-  ];
 
   const statutColors = {
     'Nouveau': { bg: '#E6F1FB', col: '#0C447C' },
@@ -96,6 +91,27 @@ const [livraisons] = useState([
     'En route': { bg: '#E6F1FB', col: '#0C447C' },
   };
 
+  const badge = (bg, col, text) => (
+    <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: bg, color: col, whiteSpace: 'nowrap' }}>{text}</span>
+  );
+
+  const navItems = [
+    { id: 'dashboard', label: 'Accueil', icon: '⊞' },
+    { id: 'commandes', label: 'Ventes', icon: '◎' },
+    { id: 'catalogue', label: 'Stock', icon: '▦' },
+    { id: 'facturation', label: 'Factures', icon: '◈' },
+    { id: 'livraison', label: 'Livraison', icon: '⬡' },
+  ];
+
+  if (loading) return (
+    <div style={{ ...s.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: '22px', fontWeight: '700', color: '#1D9E75', marginBottom: '8px' }}>LYNA</p>
+        <p style={{ fontSize: '13px', color: '#888' }}>Chargement...</p>
+      </div>
+    </div>
+  );
+
   return (
     <div style={s.wrap}>
       <div style={s.nav}>
@@ -103,60 +119,77 @@ const [livraisons] = useState([
         <span style={{ fontSize: '12px', color: '#888', background: '#f5f5f5', padding: '4px 10px', borderRadius: '999px' }}>Chez Aminata</span>
       </div>
 
-      {/* DASHBOARD */}
       {page === 'dashboard' && (
         <div style={s.page}>
-          <p style={{ fontSize: '13px', color: '#888', margin: '0 0 16px' }}>Bonjour Aminata, voici votre résumé</p>
+          <p style={{ fontSize: '13px', color: '#888', margin: '0 0 16px' }}>Bonjour, voici votre résumé</p>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
             <div style={s.metric}>
-              <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Revenus</p>
-              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#111' }}>847 500</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>FCFA ce mois</p>
+              <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Commandes</p>
+              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{commandes.length}</p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>total</p>
             </div>
             <div style={s.metric}>
-              <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Commandes</p>
-              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#111' }}>{commandes.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>ce mois</p>
+              <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Produits</p>
+              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{produits.length}</p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>au catalogue</p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <div style={s.metric}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Factures</p>
-              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#111' }}>{factures.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27' }}>dont 1 en retard</p>
+              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{factures.length}</p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27' }}>
+                {factures.filter(f => f.statut === 'En retard').length} en retard
+              </p>
             </div>
             <div style={s.metric}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Livraisons</p>
-              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#111' }}>{livraisons.length}</p>
+              <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{livraisons.length}</p>
               <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>aujourd'hui</p>
             </div>
           </div>
 
-          <p style={s.sectionTitle}>Alertes stock</p>
-          {produits.filter(p => p.stock < 6).map(p => (
-            <div key={p.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid #E24B4A' }}>
-              <div>
-                <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{p.nom}</p>
-                <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Stock faible</p>
-              </div>
-              <span style={s.badge('#FCEBEB', '#791F1F')}>Stock : {p.stock}</span>
-            </div>
-          ))}
+          {produits.filter(p => p.stock < 6).length > 0 && (
+            <>
+              <p style={s.sectionTitle}>Alertes stock</p>
+              {produits.filter(p => p.stock < 6).map(p => (
+                <div key={p.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid #E24B4A' }}>
+                  <div>
+                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{p.nom}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Stock faible</p>
+                  </div>
+                  {badge('#FCEBEB', '#791F1F', 'Stock : ' + p.stock)}
+                </div>
+              ))}
+            </>
+          )}
 
-          <p style={{ ...s.sectionTitle, marginTop: '16px' }}>Dernières commandes</p>
-          {commandes.slice(0, 3).map(cmd => (
-            <div key={cmd.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{cmd.client}</p>
-                <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{cmd.montant} FCFA</p>
-              </div>
-              <span style={s.badge(cmd.bg, cmd.couleur)}>{cmd.statut}</span>
+          {commandes.length > 0 && (
+            <>
+              <p style={{ ...s.sectionTitle, marginTop: '16px' }}>Dernières commandes</p>
+              {commandes.slice(0, 3).map(cmd => {
+                const sc = statutColors[cmd.statut] || { bg: '#eee', col: '#555' };
+                return (
+                  <div key={cmd.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{cmd.client}</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{cmd.montant} FCFA</p>
+                    </div>
+                    {badge(sc.bg, sc.col, cmd.statut)}
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {commandes.length === 0 && produits.length === 0 && (
+            <div style={{ ...s.card, textAlign: 'center', padding: '32px', color: '#888' }}>
+              <p style={{ fontSize: '13px', margin: 0 }}>Ajoutez vos premiers produits et commandes pour voir votre résumé ici</p>
             </div>
-          ))}
+          )}
         </div>
       )}
 
-      {/* COMMANDES */}
       {page === 'commandes' && (
         <div style={s.page}>
           <div style={s.card}>
@@ -168,19 +201,22 @@ const [livraisons] = useState([
             </div>
           </div>
           <p style={s.sectionTitle}>Toutes les ventes ({commandes.length})</p>
-          {commandes.map(cmd => (
-            <div key={cmd.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{cmd.id} — {cmd.client}</p>
-                <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{cmd.montant} FCFA</p>
+          {commandes.length === 0 && <p style={{ fontSize: '13px', color: '#888', textAlign: 'center' }}>Aucune vente pour l'instant</p>}
+          {commandes.map(cmd => {
+            const sc = statutColors[cmd.statut] || { bg: '#eee', col: '#555' };
+            return (
+              <div key={cmd.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{cmd.client}</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{cmd.montant} FCFA</p>
+                </div>
+                {badge(sc.bg, sc.col, cmd.statut)}
               </div>
-              <span style={s.badge(cmd.bg, cmd.couleur)}>{cmd.statut}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* CATALOGUE / STOCK */}
       {page === 'catalogue' && (
         <div style={s.page}>
           <div style={s.card}>
@@ -193,21 +229,19 @@ const [livraisons] = useState([
             </div>
           </div>
           <p style={s.sectionTitle}>Catalogue ({produits.length} produits)</p>
+          {produits.length === 0 && <p style={{ fontSize: '13px', color: '#888', textAlign: 'center' }}>Aucun produit pour l'instant</p>}
           {produits.map(p => (
             <div key={p.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{p.nom}</p>
                 <p style={{ margin: 0, fontSize: '12px', color: '#1D9E75', fontWeight: '500' }}>{p.prix} FCFA</p>
               </div>
-              <span style={s.badge(p.stock < 6 ? '#FCEBEB' : '#EAF3DE', p.stock < 6 ? '#791F1F' : '#27500A')}>
-                {p.stock < 6 ? '⚠ ' : ''}Stock : {p.stock}
-              </span>
+              {badge(p.stock < 6 ? '#FCEBEB' : '#EAF3DE', p.stock < 6 ? '#791F1F' : '#27500A', (p.stock < 6 ? '⚠ ' : '') + 'Stock : ' + p.stock)}
             </div>
           ))}
         </div>
       )}
 
-      {/* FACTURATION */}
       {page === 'facturation' && (
         <div style={s.page}>
           <div style={s.card}>
@@ -225,16 +259,17 @@ const [livraisons] = useState([
             </div>
           </div>
           <p style={s.sectionTitle}>Factures ({factures.length})</p>
+          {factures.length === 0 && <p style={{ fontSize: '13px', color: '#888', textAlign: 'center' }}>Aucune facture pour l'instant</p>}
           {factures.map(f => {
             const sc = statutColors[f.statut] || { bg: '#eee', col: '#555' };
             return (
               <div key={f.id} style={{ ...s.card, borderLeft: f.statut === 'En retard' ? '3px solid #E24B4A' : '1px solid #eee' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{f.id} — {f.client}</p>
+                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{f.client}</p>
                     <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{f.montant} FCFA · {f.moyen}</p>
                   </div>
-                  <span style={s.badge(sc.bg, sc.col)}>{f.statut}</span>
+                  {badge(sc.bg, sc.col, f.statut)}
                 </div>
               </div>
             );
@@ -242,7 +277,6 @@ const [livraisons] = useState([
         </div>
       )}
 
-      {/* LIVRAISON */}
       {page === 'livraison' && (
         <div style={s.page}>
           <p style={s.sectionTitle}>Livraisons du jour</p>
@@ -254,21 +288,20 @@ const [livraisons] = useState([
                   <div>
                     <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{l.id} — {l.destination}</p>
                     <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#888' }}>Chauffeur : {l.chauffeur}</p>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Heure prévue : {l.heure}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Heure : {l.heure}</p>
                   </div>
-                  <span style={s.badge(sc.bg, sc.col)}>{l.statut}</span>
+                  {badge(sc.bg, sc.col, l.statut)}
                 </div>
               </div>
             );
           })}
-          <div style={{ ...s.card, background: '#f0faf6', border: '1px solid #9FE1CB', marginTop: '16px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '500', color: '#085041' }}>Prochaine étape</p>
-            <p style={{ margin: 0, fontSize: '12px', color: '#085041' }}>Le tracking GPS en temps réel arrive dans la version 2.0 de LYNA</p>
+          <div style={{ ...s.card, background: '#f0faf6', border: '1px solid #9FE1CB', marginTop: '8px' }}>
+            <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '500', color: '#085041' }}>Prochaine version</p>
+            <p style={{ margin: 0, fontSize: '12px', color: '#085041' }}>Tracking GPS en temps réel dans LYNA 2.0</p>
           </div>
         </div>
       )}
 
-      {/* Barre de navigation mobile */}
       <div style={s.bottomNav}>
         {navItems.map(item => (
           <button key={item.id} style={page === item.id ? s.navBtnActive : s.navBtn} onClick={() => setPage(item.id)}>
