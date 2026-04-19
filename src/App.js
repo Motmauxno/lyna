@@ -96,11 +96,11 @@ function App() {
   );
 
   const navItems = [
-    { id: 'dashboard', label: 'Accueil', icon: '⊞' },
-    { id: 'commandes', label: 'Ventes', icon: '◎' },
-    { id: 'catalogue', label: 'Stock', icon: '▦' },
-    { id: 'facturation', label: 'Factures', icon: '◈' },
-    { id: 'livraison', label: 'Livraison', icon: '⬡' },
+    { id: 'dashboard', label: 'Accueil', icon: '🏠' },
+{ id: 'commandes', label: 'Ventes', icon: '🛒' },
+{ id: 'catalogue', label: 'Stock', icon: '📦' },
+{ id: 'facturation', label: 'Factures', icon: '🧾' },
+{ id: 'livraison', label: 'Livraison', icon: '🚚' },
   ];
 
   if (loading) return (
