@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import Auth from './Auth';
+import Landing from './Landing';
 
 function App() {
   const [page, setPage] = useState('dashboard');
@@ -9,6 +10,7 @@ function App() {
   const [factures, setFactures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [voirLanding, setVoirLanding] = useState(true);
 
   const [nomCmd, setNomCmd] = useState('');
   const [montantCmd, setMontantCmd] = useState('');
@@ -26,12 +28,13 @@ function App() {
   ];
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) chargerDonnees(session.user.id);
       else setLoading(false);
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function chargerDonnees(uid) {
     setLoading(true);
@@ -75,6 +78,7 @@ function App() {
   async function deconnexion() {
     await supabase.auth.signOut();
     setUser(null);
+    setVoirLanding(true);
     setCommandes([]); setProduits([]); setFactures([]);
   }
 
@@ -116,6 +120,7 @@ function App() {
     { id: 'livraison', label: 'Livraison', icon: '🚚' },
   ];
 
+  if (voirLanding && !user) return <Landing onCommencer={() => setVoirLanding(false)} />;
   if (!user) return <Auth onConnexion={(u) => { setUser(u); chargerDonnees(u.id); }} />;
 
   if (loading) return (
