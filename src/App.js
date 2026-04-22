@@ -8,6 +8,7 @@ function App() {
   const [commandes, setCommandes] = useState([]);
   const [produits, setProduits] = useState([]);
   const [factures, setFactures] = useState([]);
+  const [livraisons, setLivraisons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [voirLanding, setVoirLanding] = useState(true);
@@ -20,12 +21,9 @@ function App() {
   const [clientFac, setClientFac] = useState('');
   const [montantFac, setMontantFac] = useState('');
   const [moyenFac, setMoyenFac] = useState('Wave');
-
-  const livraisons = [
-    { id: 'LIV-01', destination: 'Plateau, Dakar', chauffeur: 'Ibou D.', statut: 'En route', heure: '14:30' },
-    { id: 'LIV-02', destination: 'Almadies', chauffeur: 'Cheikh N.', statut: 'Livré', heure: '13:15' },
-    { id: 'LIV-03', destination: 'Pikine', chauffeur: 'Modou F.', statut: 'En attente', heure: '16:00' },
-  ];
+  const [destLiv, setDestLiv] = useState('');
+  const [chauffeurLiv, setChauffeurLiv] = useState('');
+  const [heureLiv, setHeureLiv] = useState('');
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -42,9 +40,11 @@ function App() {
     const { data: cmds } = await supabase.from('commandes').select('*').eq('user_id', id).order('created_at', { ascending: false });
     const { data: prods } = await supabase.from('produits').select('*').eq('user_id', id).order('created_at', { ascending: false });
     const { data: facts } = await supabase.from('factures').select('*').eq('user_id', id).order('created_at', { ascending: false });
+    const { data: livs } = await supabase.from('livraisons').select('*').eq('user_id', id).order('created_at', { ascending: false });
     if (cmds) setCommandes(cmds);
     if (prods) setProduits(prods);
     if (facts) setFactures(facts);
+    if (livs) setLivraisons(livs);
     setLoading(false);
   }
 
@@ -75,11 +75,40 @@ function App() {
     setClientFac(''); setMontantFac('');
   }
 
+  async function ajouterLivraison() {
+    if (!destLiv || !chauffeurLiv) return;
+    const { data } = await supabase.from('livraisons').insert([
+      { destination: destLiv, chauffeur: chauffeurLiv, heure: heureLiv || '--:--', statut: 'En attente', user_id: user.id }
+    ]).select();
+    if (data) setLivraisons([data[0], ...livraisons]);
+    setDestLiv(''); setChauffeurLiv(''); setHeureLiv('');
+  }
+
+  async function majFacture(id, statut) {
+    await supabase.from('factures').update({ statut }).eq('id', id);
+    setFactures(factures.map(f => f.id === id ? { ...f, statut } : f));
+  }
+
+  async function supprimerFacture(id) {
+    await supabase.from('factures').delete().eq('id', id);
+    setFactures(factures.filter(f => f.id !== id));
+  }
+
+  async function majLivraison(id, statut) {
+    await supabase.from('livraisons').update({ statut }).eq('id', id);
+    setLivraisons(livraisons.map(l => l.id === id ? { ...l, statut } : l));
+  }
+
+  async function supprimerLivraison(id) {
+    await supabase.from('livraisons').delete().eq('id', id);
+    setLivraisons(livraisons.filter(l => l.id !== id));
+  }
+
   async function deconnexion() {
     await supabase.auth.signOut();
     setUser(null);
     setVoirLanding(true);
-    setCommandes([]); setProduits([]); setFactures([]);
+    setCommandes([]); setProduits([]); setFactures([]); setLivraisons([]);
   }
 
   const s = {
@@ -93,8 +122,9 @@ function App() {
     card: { background: '#fff', borderRadius: '12px', padding: '14px 16px', border: '1px solid #eee', marginBottom: '10px' },
     input: { flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', minWidth: '80px', background: '#fff' },
     btn: { padding: '8px 16px', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' },
+    btnSm: (bg, col) => ({ padding: '4px 10px', background: bg, color: col, border: 'none', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }),
     row: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' },
-    metric: { background: '#fff', borderRadius: '12px', padding: '14px', border: '1px solid #eee', flex: 1 },
+    metricBtn: { background: '#fff', borderRadius: '12px', padding: '14px', border: '1px solid #eee', flex: 1, cursor: 'pointer', textAlign: 'left' },
     sectionTitle: { fontSize: '14px', fontWeight: '500', margin: '0 0 12px', color: '#111' },
   };
 
@@ -103,6 +133,7 @@ function App() {
     'En prép.': { bg: '#FAEEDA', col: '#633806' },
     'Livré': { bg: '#EAF3DE', col: '#27500A' },
     'Payé': { bg: '#EAF3DE', col: '#27500A' },
+    'Réglé': { bg: '#EAF3DE', col: '#27500A' },
     'En attente': { bg: '#FAEEDA', col: '#633806' },
     'En retard': { bg: '#FCEBEB', col: '#791F1F' },
     'En route': { bg: '#E6F1FB', col: '#0C447C' },
@@ -145,28 +176,28 @@ function App() {
         <div style={s.page}>
           <p style={{ fontSize: '13px', color: '#888', margin: '0 0 16px' }}>Bonjour, voici votre résumé</p>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-            <div style={s.metric}>
+            <button style={s.metricBtn} onClick={() => setPage('commandes')}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Commandes</p>
               <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{commandes.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>total</p>
-            </div>
-            <div style={s.metric}>
+              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>total →</p>
+            </button>
+            <button style={s.metricBtn} onClick={() => setPage('catalogue')}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Produits</p>
               <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{produits.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>au catalogue</p>
-            </div>
+              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>au catalogue →</p>
+            </button>
           </div>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <div style={s.metric}>
+            <button style={s.metricBtn} onClick={() => setPage('facturation')}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Factures</p>
               <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{factures.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27' }}>{factures.filter(f => f.statut === 'En retard').length} en retard</p>
-            </div>
-            <div style={s.metric}>
+              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27' }}>{factures.filter(f => f.statut === 'En attente').length} en attente →</p>
+            </button>
+            <button style={s.metricBtn} onClick={() => setPage('livraison')}>
               <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#888' }}>Livraisons</p>
               <p style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{livraisons.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>aujourd'hui</p>
-            </div>
+              <p style={{ margin: 0, fontSize: '11px', color: '#1D9E75' }}>aujourd'hui →</p>
+            </button>
           </div>
 
           {produits.filter(p => p.stock < 6).length > 0 && (
@@ -186,7 +217,7 @@ function App() {
 
           {commandes.length > 0 && (
             <>
-              <p style={{ ...s.sectionTitle, marginTop: '16px' }}>Dernières commandes</p>
+              <p style={{ ...s.sectionTitle, marginTop: '16px' }}>Dernières ventes</p>
               {commandes.slice(0, 3).map(cmd => {
                 const sc = statutColors[cmd.statut] || { bg: '#eee', col: '#555' };
                 return (
@@ -220,17 +251,20 @@ function App() {
               <button style={s.btn} onClick={ajouterCommande}>Ajouter</button>
             </div>
           </div>
-          <p style={s.sectionTitle}>Toutes les ventes ({commandes.length})</p>
+          <p style={s.sectionTitle}>Registre des ventes ({commandes.length})</p>
           {commandes.length === 0 && <p style={{ fontSize: '13px', color: '#888', textAlign: 'center' }}>Aucune vente pour l'instant</p>}
-          {commandes.map(cmd => {
+          {commandes.map((cmd, i) => {
             const sc = statutColors[cmd.statut] || { bg: '#eee', col: '#555' };
+            const date = new Date(cmd.created_at).toLocaleDateString('fr-FR');
             return (
-              <div key={cmd.id} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{cmd.client}</p>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{cmd.montant} FCFA</p>
+              <div key={cmd.id} style={s.card}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div>
+                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>#{commandes.length - i} — {cmd.client}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{cmd.montant} FCFA · {date}</p>
+                  </div>
+                  {badge(sc.bg, sc.col, cmd.statut)}
                 </div>
-                {badge(sc.bg, sc.col, cmd.statut)}
               </div>
             );
           })}
@@ -282,14 +316,24 @@ function App() {
           {factures.length === 0 && <p style={{ fontSize: '13px', color: '#888', textAlign: 'center' }}>Aucune facture pour l'instant</p>}
           {factures.map(f => {
             const sc = statutColors[f.statut] || { bg: '#eee', col: '#555' };
+            const date = new Date(f.created_at).toLocaleDateString('fr-FR');
             return (
               <div key={f.id} style={{ ...s.card, borderLeft: f.statut === 'En retard' ? '3px solid #E24B4A' : '1px solid #eee' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <div>
                     <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{f.client}</p>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{f.montant} FCFA · {f.moyen}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{f.montant} FCFA · {f.moyen} · {date}</p>
                   </div>
                   {badge(sc.bg, sc.col, f.statut)}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {f.statut !== 'Réglé' && (
+                    <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majFacture(f.id, 'Réglé')}>Réglé</button>
+                  )}
+                  {f.statut === 'En attente' && (
+                    <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majFacture(f.id, 'En retard')}>Marquer en retard</button>
+                  )}
+                  <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerFacture(f.id)}>Supprimer</button>
                 </div>
               </div>
             );
@@ -299,26 +343,46 @@ function App() {
 
       {page === 'livraison' && (
         <div style={s.page}>
-          <p style={s.sectionTitle}>Livraisons du jour</p>
+          <div style={s.card}>
+            <p style={s.sectionTitle}>Nouvelle livraison</p>
+            <div style={s.row}>
+              <input style={s.input} placeholder="Destination" value={destLiv} onChange={e => setDestLiv(e.target.value)} />
+              <input style={s.input} placeholder="Chauffeur" value={chauffeurLiv} onChange={e => setChauffeurLiv(e.target.value)} />
+              <input style={{ ...s.input, maxWidth: '90px' }} placeholder="Heure" value={heureLiv} onChange={e => setHeureLiv(e.target.value)} />
+              <button style={s.btn} onClick={ajouterLivraison}>+</button>
+            </div>
+          </div>
+          <p style={s.sectionTitle}>Livraisons ({livraisons.length})</p>
+          {livraisons.length === 0 && <p style={{ fontSize: '13px', color: '#888', textAlign: 'center' }}>Aucune livraison pour l'instant</p>}
           {livraisons.map(l => {
             const sc = statutColors[l.statut] || { bg: '#eee', col: '#555' };
             return (
-              <div key={l.id} style={s.card}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div key={l.id} style={{ ...s.card, borderLeft: l.statut === 'En retard' ? '3px solid #E24B4A' : '1px solid #eee' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <div>
-                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{l.id} — {l.destination}</p>
-                    <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#888' }}>Chauffeur : {l.chauffeur}</p>
+                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '500' }}>{l.destination}</p>
+                    <p style={{ margin: '0 0 2px', fontSize: '12px', color: '#888' }}>Chauffeur : {l.chauffeur}</p>
                     <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Heure : {l.heure}</p>
                   </div>
                   {badge(sc.bg, sc.col, l.statut)}
                 </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {l.statut !== 'Livré' && (
+                    <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majLivraison(l.id, 'Livré')}>Livré</button>
+                  )}
+                  {l.statut === 'En attente' && (
+                    <button style={s.btnSm('#E6F1FB', '#0C447C')} onClick={() => majLivraison(l.id, 'En route')}>En route</button>
+                  )}
+                  {l.statut !== 'En retard' && l.statut !== 'Livré' && (
+                    <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majLivraison(l.id, 'En retard')}>En retard</button>
+                  )}
+                  {l.statut === 'Livré' && (
+                    <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>
+                  )}
+                </div>
               </div>
             );
           })}
-          <div style={{ ...s.card, background: '#f0faf6', border: '1px solid #9FE1CB', marginTop: '8px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: '500', color: '#085041' }}>Prochaine version</p>
-            <p style={{ margin: 0, fontSize: '12px', color: '#085041' }}>Tracking GPS en temps réel dans LYNA 2.0</p>
-          </div>
         </div>
       )}
 
