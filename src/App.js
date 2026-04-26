@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import Auth from './Auth';
 import Landing from './Landing';
-
+import Stock from './Stock';
 function App() {
   const [page, setPage] = useState('dashboard');
   const [theme, setTheme] = useState('clair');
@@ -453,82 +453,8 @@ function App() {
 
       {/* STOCK */}
       {page === 'catalogue' && (
-        <div style={s.page}>
-          <div style={s.card}>
-            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>{editProd ? '✏️ Modifier le produit' : '+ Ajouter un produit'}</p>
-            <div style={s.row}>
-              <input style={s.input} placeholder="Nom produit" value={nomProd} onChange={e => setNomProd(e.target.value)} />
-              <input style={s.input} placeholder="Prix FCFA" value={prixProd} onChange={e => setPrixProd(e.target.value)} />
-            </div>
-            <div style={s.row}>
-              <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Stock" type="number" value={stockProd} onChange={e => setStockProd(e.target.value)} />
-              <select style={{ ...s.input, flex: 1 }} value={categorieProd} onChange={e => setCategorieProd(e.target.value)}>
-                {categories.map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-            <div style={s.row}>
-              <button style={s.btn()} onClick={ajouterProduit}>{editProd ? 'Enregistrer' : 'Ajouter'}</button>
-              {editProd && <button style={s.btn('#888')} onClick={() => { setEditProd(null); setNomProd(''); setPrixProd(''); setStockProd(''); }}>Annuler</button>}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
-            <div style={{ ...s.metricCard, cursor: 'default', textAlign: 'center' }}>
-              <p style={{ margin: '0 0 4px', fontSize: '11px', color: T.textSec }}>Produits</p>
-              <p style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: T.text }}>{produits.length}</p>
-            </div>
-            <div style={{ ...s.metricCard, cursor: 'default', textAlign: 'center' }}>
-              <p style={{ margin: '0 0 4px', fontSize: '11px', color: T.textSec }}>Stock total</p>
-              <p style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: T.text }}>{stockTotal}</p>
-            </div>
-            <div style={{ ...s.metricCard, cursor: 'default', textAlign: 'center', borderLeft: alertesStock > 0 ? '3px solid #DC2626' : `1px solid ${T.border}` }}>
-              <p style={{ margin: '0 0 4px', fontSize: '11px', color: T.textSec }}>Alertes</p>
-              <p style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: alertesStock > 0 ? '#DC2626' : '#16A34A' }}>{alertesStock}</p>
-            </div>
-          </div>
-
-          {categoriesActives.map(cat => {
-            const prods = produits.filter(p => (p.categorie || 'Général') === cat);
-            const stockCat = prods.reduce((a, p) => a + (p.stock || 0), 0);
-            const alertesCat = prods.filter(p => p.stock < 6).length;
-            return (
-              <div key={cat} style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: T.text }}>{cat}</p>
-                    <span style={{ fontSize: '11px', background: sombre ? '#222' : '#f0f0f0', color: T.textSec, padding: '2px 8px', borderRadius: '999px' }}>{prods.length} produit{prods.length > 1 ? 's' : ''}</span>
-                  </div>
-                  <span style={{ fontSize: '12px', color: alertesCat > 0 ? '#DC2626' : couleur, fontWeight: '600' }}>{stockCat} unités {alertesCat > 0 ? `· ⚠️ ${alertesCat}` : ''}</span>
-                </div>
-                {prods.map(p => (
-                  <div key={p.id} onClick={() => setDetail({ ...p, type: 'produit' })} style={{ ...s.card, cursor: 'pointer', borderLeft: p.stock < 6 ? '3px solid #DC2626' : `3px solid ${couleur}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <div>
-                        <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{p.nom}</p>
-                        <p style={{ margin: 0, fontSize: '12px', color: couleur, fontWeight: '600' }}>{p.prix.toLocaleString()} FCFA</p>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p style={{ margin: '0 0 2px', fontSize: '18px', fontWeight: '800', color: p.stock < 6 ? '#DC2626' : T.text }}>{p.stock}</p>
-                        <p style={{ margin: 0, fontSize: '10px', color: T.textSec }}>en stock</p>
-                      </div>
-                    </div>
-                    <div style={{ height: '4px', background: sombre ? '#333' : '#eee', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min(100, p.stock)}%`, background: p.stock < 6 ? '#DC2626' : couleur, borderRadius: '2px', transition: 'width 0.3s' }} />
-                    </div>
-                    <p style={{ margin: '6px 0 0', fontSize: '11px', color: T.textSec }}>Valeur : {(p.prix * p.stock).toLocaleString()} FCFA · Appuyer pour détails</p>
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-          {produits.length === 0 && (
-            <div style={{ ...s.card, textAlign: 'center', padding: '40px' }}>
-              <p style={{ fontSize: '32px', margin: '0 0 8px' }}>📦</p>
-              <p style={{ fontSize: '13px', color: T.textSec, margin: 0 }}>Aucun produit pour l'instant</p>
-            </div>
-          )}
-        </div>
-      )}
+  <Stock user={user} couleur={couleur} T={T} sombre={sombre} />
+)}
 
       {/* FACTURES */}
       {page === 'facturation' && (
