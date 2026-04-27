@@ -203,7 +203,7 @@ function App() {
   };
 
   if (voirLanding && !user) return <Landing onCommencer={() => setVoirLanding(false)} />;
-  if (!user) return <Auth onConnexion={(u) => { setUser(u); chargerDonnees(u.id); }} />;
+  if (!user) return <Auth onConnexion={(u) => { if (u && u.id) { setUser(u); chargerDonnees(u.id); } }} />;
   if (loading) return (
     <div style={{ ...s.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center' }}>

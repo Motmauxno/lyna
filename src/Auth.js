@@ -24,8 +24,9 @@ function Auth({ onConnexion }) {
     if (!email || !motDePasse) return setMessage('Remplis tous les champs');
     setChargement(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password: motDePasse });
-    if (error) setMessage('Email ou mot de passe incorrect');
-    else onConnexion();
+    if (error) { setMessage('Email ou mot de passe incorrect'); setChargement(false); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) onConnexion(user);
     setChargement(false);
   }
 
