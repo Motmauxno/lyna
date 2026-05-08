@@ -36,6 +36,7 @@ function App() {
   const [destLiv, setDestLiv] = useState('');
   const [chauffeurLiv, setChauffeurLiv] = useState('');
   const [heureLiv, setHeureLiv] = useState('');
+const [posLiv, setPosLiv] = useState('');
 
   const categories = ['Général', 'Alimentation', 'Boissons', 'Vêtements', 'Électronique', 'Pharmacie', 'Autre'];
   const couleurs = ['#1D9E75', '#2563EB', '#DC2626', '#7C3AED', '#EA580C', '#0891B2', '#BE185D'];
@@ -139,9 +140,9 @@ function App() {
 
   async function ajouterLivraison() {
     if (!destLiv || !chauffeurLiv) return;
-    const { data } = await supabase.from('livraisons').insert([{ destination: destLiv, chauffeur: chauffeurLiv, heure: heureLiv || '--:--', statut: 'En attente', user_id: user.id, lat: 14.6928, lng: -17.4467 }]).select();
+    const { data } = await supabase.from('livraisons').insert([{ destination: destLiv, chauffeur: chauffeurLiv, heure: heureLiv || '--:--', statut: 'En attente', position: posLiv || null, user_id: user.id }]).select();
     if (data) setLivraisons([data[0], ...livraisons]);
-    setDestLiv(''); setChauffeurLiv(''); setHeureLiv('');
+    setDestLiv(''); setChauffeurLiv(''); setHeureLiv(''); setPosLiv('');
   }
 
   async function majLivraison(id, statut) {
@@ -511,28 +512,30 @@ function App() {
               <input style={s.input} placeholder="Chauffeur" value={chauffeurLiv} onChange={e => setChauffeurLiv(e.target.value)} />
             </div>
             <div style={s.row}>
-              <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Heure" value={heureLiv} onChange={e => setHeureLiv(e.target.value)} />
+           <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Heure" value={heureLiv} onChange={e => setHeureLiv(e.target.value)} />
               <button style={s.btn()} onClick={ajouterLivraison}>Ajouter</button>
+            </div>
+            <div style={s.row}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+            </div>
+            <div style={s.row}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+            </div>
+            <div style={s.row}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+            </div>
+            <div style={s.row}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+            </div>
+            <div style={s.row}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+            </div>
+            <div style={s.row}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
             </div>
           </div>
 
-          {livraisons.filter(l => l.statut !== 'Livré').length > 0 && (
-            <>
-              <p style={s.sectionTitle}>Carte des livraisons actives</p>
-              <div style={{ ...s.card, padding: 0, overflow: 'hidden', marginBottom: '16px' }}>
-                <iframe
-                  title="Carte livraisons"
-                  width="100%"
-                  height="220"
-                  style={{ border: 'none', display: 'block' }}
-                  src={`https://maps.google.com/maps?q=Dakar,Senegal&output=embed&z=12`}
-                />
-                <div style={{ padding: '10px 14px', borderTop: `1px solid ${T.border}` }}>
-                  <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>📍 {livraisons.filter(l => l.statut !== 'Livré').length} livraison(s) active(s) à Dakar</p>
-                </div>
-              </div>
-            </>
-          )}
+        
 
           <p style={s.sectionTitle}>Toutes les livraisons ({livraisons.length})</p>
           {livraisons.length === 0 && (
@@ -552,10 +555,23 @@ function App() {
                 {badge(l.statut)}
               </div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+               {l.position && (
+  <a href={l.position} target="_blank" rel="noopener noreferrer" style={{ ...s.btnSm('#EAF3DE', '#27500A'), textDecoration: 'none', display: 'inline-block' }}>📍 Voir position</a>
+)} 
                 {l.statut === 'En attente' && <button style={s.btnSm('#E6F1FB', '#0C447C')} onClick={() => majLivraison(l.id, 'En route')}>En route</button>}
                 {l.statut !== 'Livré' && <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majLivraison(l.id, 'Livré')}>Livré ✓</button>}
                 {l.statut !== 'En retard' && l.statut !== 'Livré' && <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majLivraison(l.id, 'En retard')}>En retard</button>}
-                {l.statut === 'Livré' && <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>}
+                {l.statut !== 'Livré' && (
+                    
+                      href={`https://wa.me/${l.chauffeur.replace(/\D/g, '')}?text=Bonjour, merci de partager votre position en temps réel pour la livraison à ${l.destination}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ ...s.btnSm('#EAF3DE', '#27500A'), textDecoration: 'none', display: 'inline-block' }}
+                    >
+                      💬 WhatsApp
+                    </a>
+                  )}
+                  {l.statut === 'Livré' && <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>}
               </div>
             </div>
           ))}
