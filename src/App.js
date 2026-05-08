@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import Auth from './Auth';
 import Landing from './Landing';
 import Stock from './Stock';
+
 function App() {
   const [page, setPage] = useState('dashboard');
   const [theme, setTheme] = useState('clair');
@@ -36,7 +37,7 @@ function App() {
   const [destLiv, setDestLiv] = useState('');
   const [chauffeurLiv, setChauffeurLiv] = useState('');
   const [heureLiv, setHeureLiv] = useState('');
-const [posLiv, setPosLiv] = useState('');
+  const [posLiv, setPosLiv] = useState('');
 
   const categories = ['Général', 'Alimentation', 'Boissons', 'Vêtements', 'Électronique', 'Pharmacie', 'Autre'];
   const couleurs = ['#1D9E75', '#2563EB', '#DC2626', '#7C3AED', '#EA580C', '#0891B2', '#BE185D'];
@@ -140,7 +141,14 @@ const [posLiv, setPosLiv] = useState('');
 
   async function ajouterLivraison() {
     if (!destLiv || !chauffeurLiv) return;
-    const { data } = await supabase.from('livraisons').insert([{ destination: destLiv, chauffeur: chauffeurLiv, heure: heureLiv || '--:--', statut: 'En attente', position: posLiv || null, user_id: user.id }]).select();
+    const { data } = await supabase.from('livraisons').insert([{
+      destination: destLiv,
+      chauffeur: chauffeurLiv,
+      heure: heureLiv || '--:--',
+      statut: 'En attente',
+      position: posLiv || null,
+      user_id: user.id
+    }]).select();
     if (data) setLivraisons([data[0], ...livraisons]);
     setDestLiv(''); setChauffeurLiv(''); setHeureLiv(''); setPosLiv('');
   }
@@ -163,6 +171,7 @@ const [posLiv, setPosLiv] = useState('');
 
   const statutColors = {
     'Nouveau': { bg: '#E6F1FB', col: '#0C447C' },
+    'En prép.': { bg: '#FAEEDA', col: '#633806' },
     'Livré': { bg: '#EAF3DE', col: '#27500A' },
     'Réglé': { bg: '#EAF3DE', col: '#27500A' },
     'En attente': { bg: '#FAEEDA', col: '#633806' },
@@ -214,9 +223,7 @@ const [posLiv, setPosLiv] = useState('');
     </div>
   );
 
-  const stockTotal = produits.reduce((a, p) => a + (p.stock || 0), 0);
   const alertesStock = produits.filter(p => p.stock < 6).length;
-  const categoriesActives = [...new Set(produits.map(p => p.categorie || 'Général'))];
 
   return (
     <div style={s.wrap}>
@@ -232,7 +239,7 @@ const [posLiv, setPosLiv] = useState('');
         </div>
       </div>
 
-      {/* SETTINGS PANEL */}
+      {/* SETTINGS */}
       {showSettings && (
         <div style={s.overlay} onClick={() => setShowSettings(false)}>
           <div style={s.sheet} onClick={e => e.stopPropagation()}>
@@ -247,7 +254,7 @@ const [posLiv, setPosLiv] = useState('');
               ))}
             </div>
             <p style={{ ...s.label, marginBottom: '10px' }}>Couleur principale</p>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
               {couleurs.map(c => (
                 <button key={c} onClick={() => setCouleur(c)} style={{ width: '44px', height: '44px', borderRadius: '50%', background: c, border: couleur === c ? '3px solid white' : '3px solid transparent', cursor: 'pointer', outline: couleur === c ? `3px solid ${c}` : 'none' }} />
               ))}
@@ -257,7 +264,7 @@ const [posLiv, setPosLiv] = useState('');
         </div>
       )}
 
-      {/* DETAIL PANEL */}
+      {/* DETAIL */}
       {detail && (
         <div style={s.overlay} onClick={() => setDetail(null)}>
           <div style={s.sheet} onClick={e => e.stopPropagation()}>
@@ -265,37 +272,31 @@ const [posLiv, setPosLiv] = useState('');
             {detail.type === 'vente' && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <p style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: T.text }}>Détail vente #{detail.num}</p>
+                  <p style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: T.text }}>Vente #{detail.num}</p>
                   {badge(detail.statut)}
                 </div>
                 <div style={{ background: sombre ? '#222' : '#f9f9f9', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Client</span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{detail.client}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Montant</span>
-                    <span style={{ fontSize: '15px', fontWeight: '700', color: couleur }}>{detail.montant.toLocaleString()} FCFA</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Date</span>
-                    <span style={{ fontSize: '13px', color: T.text }}>{new Date(detail.created_at).toLocaleDateString('fr-FR')}</span>
-                  </div>
-                  {detail.notes && (
-                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${T.border}` }}>
-                      <span style={{ fontSize: '12px', color: T.textSec }}>Notes : {detail.notes}</span>
+                  {[
+                    { label: 'Client', val: detail.client },
+                    { label: 'Montant', val: detail.montant.toLocaleString() + ' FCFA' },
+                    { label: 'Date', val: new Date(detail.created_at).toLocaleDateString('fr-FR') },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '13px', color: T.textSec }}>{item.label}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{item.val}</span>
                     </div>
-                  )}
+                  ))}
+                  {detail.notes && <p style={{ fontSize: '12px', color: T.textSec, margin: '8px 0 0', paddingTop: '8px', borderTop: `1px solid ${T.border}` }}>Notes : {detail.notes}</p>}
                 </div>
-                <p style={{ fontSize: '13px', fontWeight: '600', color: T.text, margin: '0 0 8px' }}>Changer le statut</p>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: T.text, margin: '0 0 8px' }}>Statut</p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                   {['Nouveau', 'En prép.', 'Livré', 'Terminé'].map(st => (
-                    <button key={st} onClick={() => majStatutCmd(detail.id, st)} style={{ ...s.btnSm(detail.statut === st ? couleur : sombre ? '#333' : '#eee', detail.statut === st ? '#fff' : T.text) }}>{st}</button>
+                    <button key={st} onClick={() => majStatutCmd(detail.id, st)} style={s.btnSm(detail.statut === st ? couleur : sombre ? '#333' : '#eee', detail.statut === st ? '#fff' : T.text)}>{st}</button>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditCmd(detail.id); setNomCmd(detail.client); setMontantCmd(String(detail.montant)); setNotesCmd(detail.notes || ''); setDetail(null); setPage('commandes'); }}>Modifier</button>
-                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerCommande(detail.id)}>Supprimer</button>
+                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditCmd(detail.id); setNomCmd(detail.client); setMontantCmd(String(detail.montant)); setNotesCmd(detail.notes || ''); setDetail(null); setPage('commandes'); }}>✏️ Modifier</button>
+                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerCommande(detail.id)}>🗑️ Supprimer</button>
                 </div>
               </>
             )}
@@ -303,35 +304,26 @@ const [posLiv, setPosLiv] = useState('');
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <p style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: T.text }}>{detail.nom}</p>
-                  {badge(detail.stock < 6 ? 'En retard' : 'Livré')}
+                  <span style={{ fontSize: '22px', fontWeight: '800', color: detail.stock < 6 ? '#DC2626' : couleur }}>{detail.stock}</span>
                 </div>
                 <div style={{ background: sombre ? '#222' : '#f9f9f9', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Catégorie</span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{detail.categorie || 'Général'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Prix unitaire</span>
-                    <span style={{ fontSize: '15px', fontWeight: '700', color: couleur }}>{detail.prix.toLocaleString()} FCFA</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Stock restant</span>
-                    <span style={{ fontSize: '15px', fontWeight: '700', color: detail.stock < 6 ? '#DC2626' : '#16A34A' }}>{detail.stock} unités</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Valeur stock</span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{(detail.prix * detail.stock).toLocaleString()} FCFA</span>
-                  </div>
+                  {[
+                    { label: 'Catégorie', val: detail.categorie || 'Général' },
+                    { label: 'Prix', val: detail.prix.toLocaleString() + ' FCFA' },
+                    { label: 'Valeur stock', val: (detail.prix * detail.stock).toLocaleString() + ' FCFA' },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '13px', color: T.textSec }}>{item.label}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{item.val}</span>
+                    </div>
+                  ))}
                 </div>
-                <div style={{ marginBottom: '16px' }}>
-                  <p style={{ fontSize: '13px', color: T.textSec, margin: '0 0 6px' }}>Niveau de stock</p>
-                  <div style={{ height: '8px', background: sombre ? '#333' : '#eee', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.min(100, (detail.stock / 100) * 100)}%`, background: detail.stock < 6 ? '#DC2626' : couleur, borderRadius: '4px' }} />
-                  </div>
+                <div style={{ height: '8px', background: sombre ? '#333' : '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
+                  <div style={{ height: '100%', width: `${Math.min(100, (detail.stock / 100) * 100)}%`, background: detail.stock < 6 ? '#DC2626' : couleur, borderRadius: '4px' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditProd(detail.id); setNomProd(detail.nom); setPrixProd(String(detail.prix)); setStockProd(String(detail.stock)); setCategorieProd(detail.categorie || 'Général'); setDetail(null); setPage('catalogue'); }}>Modifier</button>
-                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerProduit(detail.id)}>Supprimer</button>
+                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditProd(detail.id); setNomProd(detail.nom); setPrixProd(String(detail.prix)); setStockProd(String(detail.stock)); setCategorieProd(detail.categorie || 'Général'); setDetail(null); setPage('catalogue'); }}>✏️ Modifier</button>
+                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerProduit(detail.id)}>🗑️ Supprimer</button>
                 </div>
               </>
             )}
@@ -345,24 +337,24 @@ const [posLiv, setPosLiv] = useState('');
           <p style={{ fontSize: '13px', color: T.textSec, margin: '0 0 16px' }}>Bonjour, voici votre résumé</p>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button style={s.metricCard} onClick={() => setPage('commandes')}>
-              <p style={{ ...s.label }}>Ventes</p>
+              <p style={s.label}>Ventes</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{commandes.length}</p>
               <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Voir tout →</p>
             </button>
             <button style={s.metricCard} onClick={() => setPage('catalogue')}>
-              <p style={{ ...s.label }}>Produits</p>
+              <p style={s.label}>Produits</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{produits.length}</p>
               <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Voir stock →</p>
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <button style={s.metricCard} onClick={() => setPage('facturation')}>
-              <p style={{ ...s.label }}>Factures</p>
+              <p style={s.label}>Factures</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{factures.length}</p>
               <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27', marginTop: '2px' }}>{factures.filter(f => f.statut === 'En attente').length} en attente →</p>
             </button>
             <button style={s.metricCard} onClick={() => setPage('livraison')}>
-              <p style={{ ...s.label }}>Livraisons</p>
+              <p style={s.label}>Livraisons</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{livraisons.length}</p>
               <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Suivre →</p>
             </button>
@@ -372,7 +364,7 @@ const [posLiv, setPosLiv] = useState('');
             <>
               <p style={s.sectionTitle}>⚠️ Alertes stock ({alertesStock})</p>
               {produits.filter(p => p.stock < 6).map(p => (
-                <div key={p.id} onClick={() => setDetail({ ...p, type: 'produit' })} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `3px solid #DC2626`, cursor: 'pointer' }}>
+                <div key={p.id} onClick={() => setDetail({ ...p, type: 'produit' })} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid #DC2626', cursor: 'pointer' }}>
                   <div>
                     <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{p.nom}</p>
                     <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>{p.categorie || 'Général'}</p>
@@ -417,18 +409,17 @@ const [posLiv, setPosLiv] = useState('');
               <input style={s.input} placeholder="Nom client" value={nomCmd} onChange={e => setNomCmd(e.target.value)} />
               <input style={s.input} placeholder="Montant FCFA" value={montantCmd} onChange={e => setMontantCmd(e.target.value)} />
             </div>
-            <div style={{ ...s.row }}>
+            <div style={s.row}>
               <input style={{ ...s.input, width: '100%' }} placeholder="Notes (optionnel)" value={notesCmd} onChange={e => setNotesCmd(e.target.value)} />
             </div>
-            <div style={{ ...s.row, marginTop: '10px' }}>
+            <div style={s.row}>
               <button style={s.btn()} onClick={ajouterCommande}>{editCmd ? 'Enregistrer' : 'Ajouter'}</button>
               {editCmd && <button style={s.btn('#888')} onClick={() => { setEditCmd(null); setNomCmd(''); setMontantCmd(''); setNotesCmd(''); }}>Annuler</button>}
             </div>
           </div>
-
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={s.sectionTitle}>Registre des ventes</p>
-            <span style={{ fontSize: '12px', color: couleur, fontWeight: '600' }}>{commandes.length} ventes · {commandes.reduce((a, c) => a + c.montant, 0).toLocaleString()} FCFA</span>
+            <span style={{ fontSize: '12px', color: couleur, fontWeight: '600' }}>{commandes.length} · {commandes.reduce((a, c) => a + c.montant, 0).toLocaleString()} FCFA</span>
           </div>
           {commandes.length === 0 && <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune vente pour l'instant</p>}
           {commandes.map((cmd, i) => (
@@ -440,7 +431,7 @@ const [posLiv, setPosLiv] = useState('');
                     <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: T.text }}>{cmd.client}</p>
                   </div>
                   <p style={{ margin: 0, fontSize: '13px', color: couleur, fontWeight: '700' }}>{cmd.montant.toLocaleString()} FCFA</p>
-                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: T.textSec }}>{new Date(cmd.created_at).toLocaleDateString('fr-FR')} {cmd.notes ? '· ' + cmd.notes : ''}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: T.textSec }}>{new Date(cmd.created_at).toLocaleDateString('fr-FR')}{cmd.notes ? ' · ' + cmd.notes : ''}</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
                   {badge(cmd.statut)}
@@ -454,8 +445,8 @@ const [posLiv, setPosLiv] = useState('');
 
       {/* STOCK */}
       {page === 'catalogue' && (
-  <Stock user={user} couleur={couleur} T={T} sombre={sombre} />
-)}
+        <Stock user={user} couleur={couleur} T={T} sombre={sombre} />
+      )}
 
       {/* FACTURES */}
       {page === 'facturation' && (
@@ -476,7 +467,6 @@ const [posLiv, setPosLiv] = useState('');
               <button style={s.btn()} onClick={ajouterFacture}>Créer</button>
             </div>
           </div>
-
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={s.sectionTitle}>Factures ({factures.length})</p>
             <span style={{ fontSize: '12px', color: '#EF9F27', fontWeight: '600' }}>{factures.filter(f => f.statut === 'En attente').length} en attente</span>
@@ -509,35 +499,26 @@ const [posLiv, setPosLiv] = useState('');
             <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>+ Nouvelle livraison</p>
             <div style={s.row}>
               <input style={s.input} placeholder="Destination" value={destLiv} onChange={e => setDestLiv(e.target.value)} />
-              <input style={s.input} placeholder="Chauffeur" value={chauffeurLiv} onChange={e => setChauffeurLiv(e.target.value)} />
+              <input style={s.input} placeholder="N° WhatsApp chauffeur" value={chauffeurLiv} onChange={e => setChauffeurLiv(e.target.value)} />
             </div>
             <div style={s.row}>
-           <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Heure" value={heureLiv} onChange={e => setHeureLiv(e.target.value)} />
+              <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Heure" value={heureLiv} onChange={e => setHeureLiv(e.target.value)} />
               <button style={s.btn()} onClick={ajouterLivraison}>Ajouter</button>
             </div>
             <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
-            </div>
-            <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
-            </div>
-            <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
-            </div>
-            <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
-            </div>
-            <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
-            </div>
-            <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Coller lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
             </div>
           </div>
 
-        
+          <div style={{ ...s.card, background: sombre ? '#1a1a1a' : '#f0faf6', border: `1px solid ${couleur}33`, marginBottom: '16px' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: '600', color: couleur }}>💡 Comment suivre une livraison</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>1. Entrez le numéro WhatsApp du chauffeur</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>2. Cliquez 💬 WhatsApp — un message est envoyé automatiquement</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>3. Le chauffeur partage sa position en temps réel</p>
+            <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>4. Collez le lien reçu → cliquez 📍 Voir position</p>
+          </div>
 
-          <p style={s.sectionTitle}>Toutes les livraisons ({livraisons.length})</p>
+          <p style={s.sectionTitle}>Livraisons ({livraisons.length})</p>
           {livraisons.length === 0 && (
             <div style={{ ...s.card, textAlign: 'center', padding: '40px' }}>
               <p style={{ fontSize: '32px', margin: '0 0 8px' }}>🚚</p>
@@ -545,33 +526,43 @@ const [posLiv, setPosLiv] = useState('');
             </div>
           )}
           {livraisons.map(l => (
-            <div key={l.id} style={{ ...s.card, borderLeft: l.statut === 'En retard' ? '3px solid #DC2626' : l.statut === 'Livré' ? `3px solid ${couleur}` : `3px solid #EF9F27` }}>
+            <div key={l.id} style={{ ...s.card, borderLeft: l.statut === 'En retard' ? '3px solid #DC2626' : l.statut === 'Livré' ? `3px solid ${couleur}` : '3px solid #EF9F27' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                 <div>
                   <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>📍 {l.destination}</p>
-                  <p style={{ margin: '0 0 2px', fontSize: '12px', color: T.textSec }}>🧑‍✈️ {l.chauffeur}</p>
+                  <p style={{ margin: '0 0 2px', fontSize: '12px', color: T.textSec }}>📱 {l.chauffeur}</p>
                   <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>🕐 {l.heure}</p>
                 </div>
                 {badge(l.statut)}
               </div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-               {l.position && (
-  <a href={l.position} target="_blank" rel="noopener noreferrer" style={{ ...s.btnSm('#EAF3DE', '#27500A'), textDecoration: 'none', display: 'inline-block' }}>📍 Voir position</a>
-)} 
-                {l.statut === 'En attente' && <button style={s.btnSm('#E6F1FB', '#0C447C')} onClick={() => majLivraison(l.id, 'En route')}>En route</button>}
-                {l.statut !== 'Livré' && <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majLivraison(l.id, 'Livré')}>Livré ✓</button>}
-                {l.statut !== 'En retard' && l.statut !== 'Livré' && <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majLivraison(l.id, 'En retard')}>En retard</button>}
+                {l.position && (
+                  <a href={l.position} target="_blank" rel="noopener noreferrer" style={{ ...s.btnSm('#E6F1FB', '#0C447C'), textDecoration: 'none', display: 'inline-block' }}>
+                    📍 Voir position
+                  </a>
+                )}
                 {l.statut !== 'Livré' && (
-                    
-                      href={`https://wa.me/${l.chauffeur.replace(/\D/g, '')}?text=Bonjour, merci de partager votre position en temps réel pour la livraison à ${l.destination}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ ...s.btnSm('#EAF3DE', '#27500A'), textDecoration: 'none', display: 'inline-block' }}
-                    >
-                      💬 WhatsApp
-                    </a>
-                  )}
-                  {l.statut === 'Livré' && <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>}
+                  
+                    href={`https://wa.me/${l.chauffeur.replace(/\D/g, '')}?text=Bonjour, merci de partager votre position en temps réel pour la livraison à ${l.destination}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ ...s.btnSm('#EAF3DE', '#27500A'), textDecoration: 'none', display: 'inline-block' }}
+                  >
+                    💬 WhatsApp
+                  </a>
+                )}
+                {l.statut === 'En attente' && (
+                  <button style={s.btnSm('#E6F1FB', '#0C447C')} onClick={() => majLivraison(l.id, 'En route')}>En route</button>
+                )}
+                {l.statut !== 'Livré' && (
+                  <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majLivraison(l.id, 'Livré')}>Livré ✓</button>
+                )}
+                {l.statut !== 'En retard' && l.statut !== 'Livré' && (
+                  <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majLivraison(l.id, 'En retard')}>En retard</button>
+                )}
+                {l.statut === 'Livré' && (
+                  <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>
+                )}
               </div>
             </div>
           ))}
