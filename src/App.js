@@ -10,7 +10,6 @@ function App() {
   const [couleur, setCouleur] = useState('#1D9E75');
   const [showSettings, setShowSettings] = useState(false);
   const [detail, setDetail] = useState(null);
-
   const [commandes, setCommandes] = useState([]);
   const [produits, setProduits] = useState([]);
   const [factures, setFactures] = useState([]);
@@ -18,30 +17,19 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [voirLanding, setVoirLanding] = useState(true);
-
   const [nomCmd, setNomCmd] = useState('');
   const [montantCmd, setMontantCmd] = useState('');
   const [notesCmd, setNotesCmd] = useState('');
   const [editCmd, setEditCmd] = useState(null);
-
-  const [nomProd, setNomProd] = useState('');
-  const [prixProd, setPrixProd] = useState('');
-  const [stockProd, setStockProd] = useState('');
-  const [categorieProd, setCategorieProd] = useState('Général');
-  const [editProd, setEditProd] = useState(null);
-
   const [clientFac, setClientFac] = useState('');
   const [montantFac, setMontantFac] = useState('');
   const [moyenFac, setMoyenFac] = useState('Wave');
-
   const [destLiv, setDestLiv] = useState('');
   const [chauffeurLiv, setChauffeurLiv] = useState('');
   const [heureLiv, setHeureLiv] = useState('');
   const [posLiv, setPosLiv] = useState('');
 
-  const categories = ['Général', 'Alimentation', 'Boissons', 'Vêtements', 'Électronique', 'Pharmacie', 'Autre'];
   const couleurs = ['#1D9E75', '#2563EB', '#DC2626', '#7C3AED', '#EA580C', '#0891B2', '#BE185D'];
-
   const sombre = theme === 'sombre';
   const T = {
     bg: sombre ? '#0F0F0F' : '#F5F5F5',
@@ -101,25 +89,6 @@ function App() {
     await supabase.from('commandes').update({ statut }).eq('id', id);
     setCommandes(commandes.map(c => c.id === id ? { ...c, statut } : c));
     setDetail(prev => prev && prev.id === id ? { ...prev, statut } : prev);
-  }
-
-  async function ajouterProduit() {
-    if (!nomProd || !prixProd) return;
-    if (editProd) {
-      await supabase.from('produits').update({ nom: nomProd, prix: parseInt(prixProd), stock: parseInt(stockProd) || 0, categorie: categorieProd }).eq('id', editProd);
-      setProduits(produits.map(p => p.id === editProd ? { ...p, nom: nomProd, prix: parseInt(prixProd), stock: parseInt(stockProd) || 0, categorie: categorieProd } : p));
-      setEditProd(null);
-    } else {
-      const { data } = await supabase.from('produits').insert([{ nom: nomProd, prix: parseInt(prixProd), stock: parseInt(stockProd) || 0, categorie: categorieProd, user_id: user.id }]).select();
-      if (data) setProduits([data[0], ...produits]);
-    }
-    setNomProd(''); setPrixProd(''); setStockProd(''); setCategorieProd('Général');
-  }
-
-  async function supprimerProduit(id) {
-    await supabase.from('produits').delete().eq('id', id);
-    setProduits(produits.filter(p => p.id !== id));
-    setDetail(null);
   }
 
   async function ajouterFacture() {
@@ -182,7 +151,11 @@ function App() {
 
   const badge = (statut) => {
     const sc = statutColors[statut] || { bg: '#eee', col: '#555' };
-    return <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: sc.bg, color: sc.col, whiteSpace: 'nowrap', fontWeight: '500' }}>{statut}</span>;
+    return (
+      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: sc.bg, color: sc.col, whiteSpace: 'nowrap', fontWeight: '500' }}>
+        {statut}
+      </span>
+    );
   };
 
   const navItems = [
@@ -201,6 +174,7 @@ function App() {
     input: { flex: 1, padding: '10px 14px', borderRadius: '10px', border: `1px solid ${T.inputBorder}`, fontSize: '13px', minWidth: '80px', background: T.input, color: T.text, outline: 'none' },
     btn: (bg) => ({ padding: '10px 18px', background: bg || couleur, color: '#fff', border: 'none', borderRadius: '10px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }),
     btnSm: (bg, col) => ({ padding: '5px 12px', background: bg, color: col, border: 'none', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: '500' }),
+    btnLink: (bg, col) => ({ padding: '5px 12px', background: bg, color: col, borderRadius: '8px', fontSize: '11px', fontWeight: '500', textDecoration: 'none', display: 'inline-block' }),
     row: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' },
     metricCard: { background: T.card, borderRadius: '14px', padding: '16px', border: `1px solid ${T.border}`, flex: 1, cursor: 'pointer', textAlign: 'left' },
     sectionTitle: { fontSize: '14px', fontWeight: '600', margin: '16px 0 10px', color: T.text },
@@ -228,10 +202,10 @@ function App() {
   return (
     <div style={s.wrap}>
 
-      {/* TOP NAV */}
       <div style={s.topNav}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '-1px' }}>
-          <span style={{ color: couleur }}>LY</span><span style={{ color: T.text }}>NA</span>
+          <span style={{ color: couleur }}>LY</span>
+          <span style={{ color: T.text }}>NA</span>
         </h1>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button onClick={() => setShowSettings(true)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>⚙️</button>
@@ -239,7 +213,6 @@ function App() {
         </div>
       </div>
 
-      {/* SETTINGS */}
       {showSettings && (
         <div style={s.overlay} onClick={() => setShowSettings(false)}>
           <div style={s.sheet} onClick={e => e.stopPropagation()}>
@@ -264,7 +237,6 @@ function App() {
         </div>
       )}
 
-      {/* DETAIL */}
       {detail && (
         <div style={s.overlay} onClick={() => setDetail(null)}>
           <div style={s.sheet} onClick={e => e.stopPropagation()}>
@@ -276,27 +248,39 @@ function App() {
                   {badge(detail.statut)}
                 </div>
                 <div style={{ background: sombre ? '#222' : '#f9f9f9', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                  {[
-                    { label: 'Client', val: detail.client },
-                    { label: 'Montant', val: detail.montant.toLocaleString() + ' FCFA' },
-                    { label: 'Date', val: new Date(detail.created_at).toLocaleDateString('fr-FR') },
-                  ].map(item => (
-                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '13px', color: T.textSec }}>{item.label}</span>
-                      <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{item.val}</span>
-                    </div>
-                  ))}
-                  {detail.notes && <p style={{ fontSize: '12px', color: T.textSec, margin: '8px 0 0', paddingTop: '8px', borderTop: `1px solid ${T.border}` }}>Notes : {detail.notes}</p>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: T.textSec }}>Client</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{detail.client}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: T.textSec }}>Montant</span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: couleur }}>{detail.montant.toLocaleString()} FCFA</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: T.textSec }}>Date</span>
+                    <span style={{ fontSize: '13px', color: T.text }}>{new Date(detail.created_at).toLocaleDateString('fr-FR')}</span>
+                  </div>
+                  {detail.notes && (
+                    <p style={{ fontSize: '12px', color: T.textSec, margin: '8px 0 0', paddingTop: '8px', borderTop: `1px solid ${T.border}` }}>
+                      Notes : {detail.notes}
+                    </p>
+                  )}
                 </div>
-                <p style={{ fontSize: '13px', fontWeight: '600', color: T.text, margin: '0 0 8px' }}>Statut</p>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: T.text, margin: '0 0 8px' }}>Changer le statut</p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                   {['Nouveau', 'En prép.', 'Livré', 'Terminé'].map(st => (
-                    <button key={st} onClick={() => majStatutCmd(detail.id, st)} style={s.btnSm(detail.statut === st ? couleur : sombre ? '#333' : '#eee', detail.statut === st ? '#fff' : T.text)}>{st}</button>
+                    <button key={st} onClick={() => majStatutCmd(detail.id, st)} style={s.btnSm(detail.statut === st ? couleur : sombre ? '#333' : '#eee', detail.statut === st ? '#fff' : T.text)}>
+                      {st}
+                    </button>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditCmd(detail.id); setNomCmd(detail.client); setMontantCmd(String(detail.montant)); setNotesCmd(detail.notes || ''); setDetail(null); setPage('commandes'); }}>✏️ Modifier</button>
-                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerCommande(detail.id)}>🗑️ Supprimer</button>
+                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditCmd(detail.id); setNomCmd(detail.client); setMontantCmd(String(detail.montant)); setNotesCmd(detail.notes || ''); setDetail(null); setPage('commandes'); }}>
+                    ✏️ Modifier
+                  </button>
+                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerCommande(detail.id)}>
+                    🗑️ Supprimer
+                  </button>
                 </div>
               </>
             )}
@@ -307,23 +291,29 @@ function App() {
                   <span style={{ fontSize: '22px', fontWeight: '800', color: detail.stock < 6 ? '#DC2626' : couleur }}>{detail.stock}</span>
                 </div>
                 <div style={{ background: sombre ? '#222' : '#f9f9f9', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                  {[
-                    { label: 'Catégorie', val: detail.categorie || 'Général' },
-                    { label: 'Prix', val: detail.prix.toLocaleString() + ' FCFA' },
-                    { label: 'Valeur stock', val: (detail.prix * detail.stock).toLocaleString() + ' FCFA' },
-                  ].map(item => (
-                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '13px', color: T.textSec }}>{item.label}</span>
-                      <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{item.val}</span>
-                    </div>
-                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: T.textSec }}>Catégorie</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{detail.categorie || 'Général'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: T.textSec }}>Prix</span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: couleur }}>{detail.prix.toLocaleString()} FCFA</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '13px', color: T.textSec }}>Valeur stock</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{(detail.prix * detail.stock).toLocaleString()} FCFA</span>
+                  </div>
                 </div>
                 <div style={{ height: '8px', background: sombre ? '#333' : '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
                   <div style={{ height: '100%', width: `${Math.min(100, (detail.stock / 100) * 100)}%`, background: detail.stock < 6 ? '#DC2626' : couleur, borderRadius: '4px' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditProd(detail.id); setNomProd(detail.nom); setPrixProd(String(detail.prix)); setStockProd(String(detail.stock)); setCategorieProd(detail.categorie || 'Général'); setDetail(null); setPage('catalogue'); }}>✏️ Modifier</button>
-                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerProduit(detail.id)}>🗑️ Supprimer</button>
+                  <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setDetail(null); setPage('catalogue'); }}>
+                    ✏️ Modifier dans Stock
+                  </button>
+                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={async () => { await supabase.from('produits').delete().eq('id', detail.id); setProduits(produits.filter(p => p.id !== detail.id)); setDetail(null); }}>
+                    🗑️ Supprimer
+                  </button>
                 </div>
               </>
             )}
@@ -331,7 +321,6 @@ function App() {
         </div>
       )}
 
-      {/* DASHBOARD */}
       {page === 'dashboard' && (
         <div style={s.page}>
           <p style={{ fontSize: '13px', color: T.textSec, margin: '0 0 16px' }}>Bonjour, voici votre résumé</p>
@@ -359,7 +348,6 @@ function App() {
               <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Suivre →</p>
             </button>
           </div>
-
           {alertesStock > 0 && (
             <>
               <p style={s.sectionTitle}>⚠️ Alertes stock ({alertesStock})</p>
@@ -374,7 +362,6 @@ function App() {
               ))}
             </>
           )}
-
           {commandes.length > 0 && (
             <>
               <p style={s.sectionTitle}>Dernières ventes</p>
@@ -389,7 +376,6 @@ function App() {
               ))}
             </>
           )}
-
           {commandes.length === 0 && produits.length === 0 && (
             <div style={{ ...s.card, textAlign: 'center', padding: '40px' }}>
               <p style={{ fontSize: '32px', margin: '0 0 8px' }}>🚀</p>
@@ -400,11 +386,12 @@ function App() {
         </div>
       )}
 
-      {/* VENTES */}
       {page === 'commandes' && (
         <div style={s.page}>
           <div style={s.card}>
-            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>{editCmd ? '✏️ Modifier la vente' : '+ Nouvelle vente'}</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>
+              {editCmd ? '✏️ Modifier la vente' : '+ Nouvelle vente'}
+            </p>
             <div style={s.row}>
               <input style={s.input} placeholder="Nom client" value={nomCmd} onChange={e => setNomCmd(e.target.value)} />
               <input style={s.input} placeholder="Montant FCFA" value={montantCmd} onChange={e => setMontantCmd(e.target.value)} />
@@ -414,14 +401,22 @@ function App() {
             </div>
             <div style={s.row}>
               <button style={s.btn()} onClick={ajouterCommande}>{editCmd ? 'Enregistrer' : 'Ajouter'}</button>
-              {editCmd && <button style={s.btn('#888')} onClick={() => { setEditCmd(null); setNomCmd(''); setMontantCmd(''); setNotesCmd(''); }}>Annuler</button>}
+              {editCmd && (
+                <button style={s.btn('#888')} onClick={() => { setEditCmd(null); setNomCmd(''); setMontantCmd(''); setNotesCmd(''); }}>
+                  Annuler
+                </button>
+              )}
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={s.sectionTitle}>Registre des ventes</p>
-            <span style={{ fontSize: '12px', color: couleur, fontWeight: '600' }}>{commandes.length} · {commandes.reduce((a, c) => a + c.montant, 0).toLocaleString()} FCFA</span>
+            <span style={{ fontSize: '12px', color: couleur, fontWeight: '600' }}>
+              {commandes.length} · {commandes.reduce((a, c) => a + c.montant, 0).toLocaleString()} FCFA
+            </span>
           </div>
-          {commandes.length === 0 && <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune vente pour l'instant</p>}
+          {commandes.length === 0 && (
+            <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune vente pour l'instant</p>
+          )}
           {commandes.map((cmd, i) => (
             <div key={cmd.id} onClick={() => setDetail({ ...cmd, type: 'vente', num: commandes.length - i })} style={{ ...s.card, cursor: 'pointer', borderLeft: `3px solid ${couleur}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -431,7 +426,9 @@ function App() {
                     <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: T.text }}>{cmd.client}</p>
                   </div>
                   <p style={{ margin: 0, fontSize: '13px', color: couleur, fontWeight: '700' }}>{cmd.montant.toLocaleString()} FCFA</p>
-                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: T.textSec }}>{new Date(cmd.created_at).toLocaleDateString('fr-FR')}{cmd.notes ? ' · ' + cmd.notes : ''}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: T.textSec }}>
+                    {new Date(cmd.created_at).toLocaleDateString('fr-FR')}{cmd.notes ? ' · ' + cmd.notes : ''}
+                  </p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
                   {badge(cmd.statut)}
@@ -443,12 +440,10 @@ function App() {
         </div>
       )}
 
-      {/* STOCK */}
       {page === 'catalogue' && (
         <Stock user={user} couleur={couleur} T={T} sombre={sombre} />
       )}
 
-      {/* FACTURES */}
       {page === 'facturation' && (
         <div style={s.page}>
           <div style={s.card}>
@@ -469,9 +464,13 @@ function App() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={s.sectionTitle}>Factures ({factures.length})</p>
-            <span style={{ fontSize: '12px', color: '#EF9F27', fontWeight: '600' }}>{factures.filter(f => f.statut === 'En attente').length} en attente</span>
+            <span style={{ fontSize: '12px', color: '#EF9F27', fontWeight: '600' }}>
+              {factures.filter(f => f.statut === 'En attente').length} en attente
+            </span>
           </div>
-          {factures.length === 0 && <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune facture pour l'instant</p>}
+          {factures.length === 0 && (
+            <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune facture pour l'instant</p>
+          )}
           {factures.map(f => (
             <div key={f.id} style={{ ...s.card, borderLeft: f.statut === 'En retard' ? '3px solid #DC2626' : f.statut === 'Réglé' ? `3px solid ${couleur}` : `1px solid ${T.border}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -483,8 +482,12 @@ function App() {
                 {badge(f.statut)}
               </div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {f.statut !== 'Réglé' && <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majFacture(f.id, 'Réglé')}>✓ Réglé</button>}
-                {f.statut === 'En attente' && <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majFacture(f.id, 'En retard')}>En retard</button>}
+                {f.statut !== 'Réglé' && (
+                  <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majFacture(f.id, 'Réglé')}>✓ Réglé</button>
+                )}
+                {f.statut === 'En attente' && (
+                  <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majFacture(f.id, 'En retard')}>En retard</button>
+                )}
                 <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerFacture(f.id)}>Supprimer</button>
               </div>
             </div>
@@ -492,7 +495,6 @@ function App() {
         </div>
       )}
 
-      {/* LIVRAISONS */}
       {page === 'livraison' && (
         <div style={s.page}>
           <div style={s.card}>
@@ -506,16 +508,16 @@ function App() {
               <button style={s.btn()} onClick={ajouterLivraison}>Ajouter</button>
             </div>
             <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Coller lien position WhatsApp (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Coller lien position reçu (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
             </div>
           </div>
 
-          <div style={{ ...s.card, background: sombre ? '#1a1a1a' : '#f0faf6', border: `1px solid ${couleur}33`, marginBottom: '16px' }}>
-            <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: '600', color: couleur }}>💡 Comment suivre une livraison</p>
+          <div style={{ ...s.card, background: sombre ? '#1a2a1a' : '#f0faf6', border: `1px solid ${couleur}44`, marginBottom: '16px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: '600', color: couleur }}>💡 Comment suivre une livraison</p>
             <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>1. Entrez le numéro WhatsApp du chauffeur</p>
-            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>2. Cliquez 💬 WhatsApp — un message est envoyé automatiquement</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>2. Cliquez 💬 WhatsApp pour lui envoyer un message</p>
             <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>3. Le chauffeur partage sa position en temps réel</p>
-            <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>4. Collez le lien reçu → cliquez 📍 Voir position</p>
+            <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>4. Collez le lien reçu et cliquez 📍 Voir position</p>
           </div>
 
           <p style={s.sectionTitle}>Livraisons ({livraisons.length})</p>
@@ -537,16 +539,21 @@ function App() {
               </div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {l.position && (
-                  <a href={l.position} target="_blank" rel="noopener noreferrer" style={{ ...s.btnSm('#E6F1FB', '#0C447C'), textDecoration: 'none', display: 'inline-block' }}>
+                  
+                    href={l.position}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={s.btnLink('#E6F1FB', '#0C447C')}
+                  >
                     📍 Voir position
                   </a>
                 )}
                 {l.statut !== 'Livré' && (
                   
-                    href={`https://wa.me/${l.chauffeur.replace(/\D/g, '')}?text=Bonjour, merci de partager votre position en temps réel pour la livraison à ${l.destination}`}
+                    href={'https://wa.me/' + l.chauffeur.replace(/\D/g, '') + '?text=Bonjour, merci de partager votre position en temps réel pour la livraison à ' + l.destination}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ ...s.btnSm('#EAF3DE', '#27500A'), textDecoration: 'none', display: 'inline-block' }}
+                    style={s.btnLink('#EAF3DE', '#27500A')}
                   >
                     💬 WhatsApp
                   </a>
@@ -569,7 +576,6 @@ function App() {
         </div>
       )}
 
-      {/* BOTTOM NAV */}
       <div style={s.bottomNav}>
         {navItems.map(item => (
           <button key={item.id} style={s.navBtn(page === item.id)} onClick={() => setPage(item.id)}>
