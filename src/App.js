@@ -140,22 +140,20 @@ function App() {
 
   const statutColors = {
     'Nouveau': { bg: '#E6F1FB', col: '#0C447C' },
-    'En prép.': { bg: '#FAEEDA', col: '#633806' },
-    'Livré': { bg: '#EAF3DE', col: '#27500A' },
-    'Réglé': { bg: '#EAF3DE', col: '#27500A' },
+    'En prep': { bg: '#FAEEDA', col: '#633806' },
+    'Livre': { bg: '#EAF3DE', col: '#27500A' },
+    'Regle': { bg: '#EAF3DE', col: '#27500A' },
     'En attente': { bg: '#FAEEDA', col: '#633806' },
     'En retard': { bg: '#FCEBEB', col: '#791F1F' },
     'En route': { bg: '#E6F1FB', col: '#0C447C' },
-    'Terminé': { bg: '#EAF3DE', col: '#27500A' },
+    'Termine': { bg: '#EAF3DE', col: '#27500A' },
   };
 
   const badge = (statut) => {
     const sc = statutColors[statut] || { bg: '#eee', col: '#555' };
-    return (
-      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: sc.bg, color: sc.col, whiteSpace: 'nowrap', fontWeight: '500' }}>
-        {statut}
-      </span>
-    );
+    return React.createElement('span', {
+      style: { fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: sc.bg, color: sc.col, whiteSpace: 'nowrap', fontWeight: '500' }
+    }, statut);
   };
 
   const navItems = [
@@ -168,26 +166,25 @@ function App() {
 
   const s = {
     wrap: { fontFamily: 'sans-serif', minHeight: '100vh', background: T.bg, maxWidth: '480px', margin: '0 auto', color: T.text },
-    topNav: { background: T.nav, padding: '14px 20px', borderBottom: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 },
+    topNav: { background: T.nav, padding: '14px 20px', borderBottom: '1px solid ' + T.border, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 },
     page: { padding: '16px 16px 90px' },
-    card: { background: T.card, borderRadius: '14px', padding: '14px 16px', border: `1px solid ${T.border}`, marginBottom: '10px' },
-    input: { flex: 1, padding: '10px 14px', borderRadius: '10px', border: `1px solid ${T.inputBorder}`, fontSize: '13px', minWidth: '80px', background: T.input, color: T.text, outline: 'none' },
-    btn: (bg) => ({ padding: '10px 18px', background: bg || couleur, color: '#fff', border: 'none', borderRadius: '10px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }),
-    btnSm: (bg, col) => ({ padding: '5px 12px', background: bg, color: col, border: 'none', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: '500' }),
-    btnLink: (bg, col) => ({ padding: '5px 12px', background: bg, color: col, borderRadius: '8px', fontSize: '11px', fontWeight: '500', textDecoration: 'none', display: 'inline-block' }),
+    card: { background: T.card, borderRadius: '14px', padding: '14px 16px', border: '1px solid ' + T.border, marginBottom: '10px' },
+    input: { flex: 1, padding: '10px 14px', borderRadius: '10px', border: '1px solid ' + T.inputBorder, fontSize: '13px', minWidth: '80px', background: T.input, color: T.text, outline: 'none' },
+    btn: function(bg) { return { padding: '10px 18px', background: bg || couleur, color: '#fff', border: 'none', borderRadius: '10px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }; },
+    btnSm: function(bg, col) { return { padding: '5px 12px', background: bg, color: col, border: 'none', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: '500' }; },
     row: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' },
-    metricCard: { background: T.card, borderRadius: '14px', padding: '16px', border: `1px solid ${T.border}`, flex: 1, cursor: 'pointer', textAlign: 'left' },
+    metricCard: { background: T.card, borderRadius: '14px', padding: '16px', border: '1px solid ' + T.border, flex: 1, cursor: 'pointer', textAlign: 'left' },
     sectionTitle: { fontSize: '14px', fontWeight: '600', margin: '16px 0 10px', color: T.text },
     label: { fontSize: '11px', color: T.textSec, margin: '0 0 4px' },
-    bottomNav: { position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: T.nav, borderTop: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-around', padding: '8px 0', zIndex: 10 },
-    navBtn: (active) => ({ border: 'none', background: active ? (sombre ? '#1A1A1A' : '#F0FAF6') : 'transparent', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '6px 10px', borderRadius: '10px', color: active ? couleur : T.textSec, fontWeight: active ? '600' : '400' }),
+    bottomNav: { position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: T.nav, borderTop: '1px solid ' + T.border, display: 'flex', justifyContent: 'space-around', padding: '8px 0', zIndex: 10 },
+    navBtn: function(active) { return { border: 'none', background: active ? (sombre ? '#1A1A1A' : '#F0FAF6') : 'transparent', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '6px 10px', borderRadius: '10px', color: active ? couleur : T.textSec, fontWeight: active ? '600' : '400' }; },
     overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 20, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
     sheet: { background: T.card, borderRadius: '20px 20px 0 0', padding: '24px 20px 40px', width: '100%', maxWidth: '480px', maxHeight: '85vh', overflowY: 'auto' },
     sheetHandle: { width: '40px', height: '4px', background: T.border, borderRadius: '2px', margin: '0 auto 20px' },
   };
 
-  if (voirLanding && !user) return <Landing onCommencer={() => setVoirLanding(false)} />;
-  if (!user) return <Auth onConnexion={(u) => { if (u && u.id) { setUser(u); chargerDonnees(u.id); } }} />;
+  if (voirLanding && !user) return React.createElement(Landing, { onCommencer: () => setVoirLanding(false) });
+  if (!user) return React.createElement(Auth, { onConnexion: (u) => { if (u && u.id) { setUser(u); chargerDonnees(u.id); } } });
   if (loading) return (
     <div style={{ ...s.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center' }}>
@@ -197,7 +194,12 @@ function App() {
     </div>
   );
 
-  const alertesStock = produits.filter(p => p.stock < 6).length;
+  const alertesStock = produits.filter(function(p) { return p.stock < 6; }).length;
+
+  const lienWA = function(numero, dest) {
+    var num = numero.replace(/\D/g, '');
+    return 'https://wa.me/' + num + '?text=Bonjour%2C%20merci%20de%20partager%20votre%20position%20pour%20la%20livraison%20%C3%A0%20' + encodeURIComponent(dest);
+  };
 
   return (
     <div style={s.wrap}>
@@ -208,41 +210,48 @@ function App() {
           <span style={{ color: T.text }}>NA</span>
         </h1>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button onClick={() => setShowSettings(true)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>⚙️</button>
-          <button onClick={deconnexion} style={{ fontSize: '11px', color: T.textSec, background: sombre ? '#222' : '#f5f5f5', padding: '5px 12px', borderRadius: '999px', border: 'none', cursor: 'pointer' }}>Déconnexion</button>
+          <button onClick={() => setShowSettings(true)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
+            ⚙️
+          </button>
+          <button onClick={deconnexion} style={{ fontSize: '11px', color: T.textSec, background: sombre ? '#222' : '#f5f5f5', padding: '5px 12px', borderRadius: '999px', border: 'none', cursor: 'pointer' }}>
+            Deconnexion
+          </button>
         </div>
       </div>
 
       {showSettings && (
         <div style={s.overlay} onClick={() => setShowSettings(false)}>
-          <div style={s.sheet} onClick={e => e.stopPropagation()}>
+          <div style={s.sheet} onClick={function(e) { e.stopPropagation(); }}>
             <div style={s.sheetHandle} />
             <p style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 20px', color: T.text }}>Personnalisation</p>
-            <p style={{ ...s.label, marginBottom: '10px' }}>Thème</p>
+            <p style={{ fontSize: '11px', color: T.textSec, marginBottom: '10px' }}>Theme</p>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-              {['clair', 'sombre'].map(t => (
-                <button key={t} onClick={() => setTheme(t)} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: `2px solid ${theme === t ? couleur : T.border}`, background: T.card, color: T.text, cursor: 'pointer', fontWeight: theme === t ? '600' : '400', fontSize: '13px' }}>
-                  {t === 'clair' ? '☀️ Clair' : '🌙 Sombre'}
-                </button>
-              ))}
+              <button onClick={() => setTheme('clair')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '2px solid ' + (theme === 'clair' ? couleur : T.border), background: T.card, color: T.text, cursor: 'pointer', fontWeight: theme === 'clair' ? '600' : '400', fontSize: '13px' }}>
+                Clair
+              </button>
+              <button onClick={() => setTheme('sombre')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '2px solid ' + (theme === 'sombre' ? couleur : T.border), background: T.card, color: T.text, cursor: 'pointer', fontWeight: theme === 'sombre' ? '600' : '400', fontSize: '13px' }}>
+                Sombre
+              </button>
             </div>
-            <p style={{ ...s.label, marginBottom: '10px' }}>Couleur principale</p>
+            <p style={{ fontSize: '11px', color: T.textSec, marginBottom: '10px' }}>Couleur principale</p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
-              {couleurs.map(c => (
-                <button key={c} onClick={() => setCouleur(c)} style={{ width: '44px', height: '44px', borderRadius: '50%', background: c, border: couleur === c ? '3px solid white' : '3px solid transparent', cursor: 'pointer', outline: couleur === c ? `3px solid ${c}` : 'none' }} />
-              ))}
+              {couleurs.map(function(c) {
+                return (
+                  <button key={c} onClick={() => setCouleur(c)} style={{ width: '44px', height: '44px', borderRadius: '50%', background: c, border: couleur === c ? '3px solid white' : '3px solid transparent', cursor: 'pointer', outline: couleur === c ? '3px solid ' + c : 'none' }} />
+                );
+              })}
             </div>
-            <input type="color" value={couleur} onChange={e => setCouleur(e.target.value)} style={{ width: '100%', height: '44px', borderRadius: '10px', border: 'none', cursor: 'pointer' }} />
+            <input type="color" value={couleur} onChange={function(e) { setCouleur(e.target.value); }} style={{ width: '100%', height: '44px', borderRadius: '10px', border: 'none', cursor: 'pointer' }} />
           </div>
         </div>
       )}
 
       {detail && (
         <div style={s.overlay} onClick={() => setDetail(null)}>
-          <div style={s.sheet} onClick={e => e.stopPropagation()}>
+          <div style={s.sheet} onClick={function(e) { e.stopPropagation(); }}>
             <div style={s.sheetHandle} />
             {detail.type === 'vente' && (
-              <>
+              <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <p style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: T.text }}>Vente #{detail.num}</p>
                   {badge(detail.statut)}
@@ -261,40 +270,38 @@ function App() {
                     <span style={{ fontSize: '13px', color: T.text }}>{new Date(detail.created_at).toLocaleDateString('fr-FR')}</span>
                   </div>
                   {detail.notes && (
-                    <p style={{ fontSize: '12px', color: T.textSec, margin: '8px 0 0', paddingTop: '8px', borderTop: `1px solid ${T.border}` }}>
+                    <p style={{ fontSize: '12px', color: T.textSec, margin: '8px 0 0', paddingTop: '8px', borderTop: '1px solid ' + T.border }}>
                       Notes : {detail.notes}
                     </p>
                   )}
                 </div>
                 <p style={{ fontSize: '13px', fontWeight: '600', color: T.text, margin: '0 0 8px' }}>Changer le statut</p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                  {['Nouveau', 'En prép.', 'Livré', 'Terminé'].map(st => (
-                    <button key={st} onClick={() => majStatutCmd(detail.id, st)} style={s.btnSm(detail.statut === st ? couleur : sombre ? '#333' : '#eee', detail.statut === st ? '#fff' : T.text)}>
-                      {st}
-                    </button>
-                  ))}
+                  {['Nouveau', 'En prep', 'Livre', 'Termine'].map(function(st) {
+                    return (
+                      <button key={st} onClick={() => majStatutCmd(detail.id, st)} style={s.btnSm(detail.statut === st ? couleur : sombre ? '#333' : '#eee', detail.statut === st ? '#fff' : T.text)}>
+                        {st}
+                      </button>
+                    );
+                  })}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setEditCmd(detail.id); setNomCmd(detail.client); setMontantCmd(String(detail.montant)); setNotesCmd(detail.notes || ''); setDetail(null); setPage('commandes'); }}>
-                    ✏️ Modifier
+                    Modifier
                   </button>
                   <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={() => supprimerCommande(detail.id)}>
-                    🗑️ Supprimer
+                    Supprimer
                   </button>
                 </div>
-              </>
+              </div>
             )}
             {detail.type === 'produit' && (
-              <>
+              <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <p style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: T.text }}>{detail.nom}</p>
                   <span style={{ fontSize: '22px', fontWeight: '800', color: detail.stock < 6 ? '#DC2626' : couleur }}>{detail.stock}</span>
                 </div>
                 <div style={{ background: sombre ? '#222' : '#f9f9f9', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: T.textSec }}>Catégorie</span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{detail.categorie || 'Général'}</span>
-                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '13px', color: T.textSec }}>Prix</span>
                     <span style={{ fontSize: '14px', fontWeight: '700', color: couleur }}>{detail.prix.toLocaleString()} FCFA</span>
@@ -304,18 +311,15 @@ function App() {
                     <span style={{ fontSize: '13px', fontWeight: '600', color: T.text }}>{(detail.prix * detail.stock).toLocaleString()} FCFA</span>
                   </div>
                 </div>
-                <div style={{ height: '8px', background: sombre ? '#333' : '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, (detail.stock / 100) * 100)}%`, background: detail.stock < 6 ? '#DC2626' : couleur, borderRadius: '4px' }} />
-                </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button style={{ ...s.btn(), flex: 1 }} onClick={() => { setDetail(null); setPage('catalogue'); }}>
-                    ✏️ Modifier dans Stock
+                    Modifier dans Stock
                   </button>
-                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={async () => { await supabase.from('produits').delete().eq('id', detail.id); setProduits(produits.filter(p => p.id !== detail.id)); setDetail(null); }}>
-                    🗑️ Supprimer
+                  <button style={{ ...s.btn('#DC2626'), flex: 1 }} onClick={async () => { await supabase.from('produits').delete().eq('id', detail.id); setProduits(produits.filter(function(p) { return p.id !== detail.id; })); setDetail(null); }}>
+                    Supprimer
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -323,64 +327,68 @@ function App() {
 
       {page === 'dashboard' && (
         <div style={s.page}>
-          <p style={{ fontSize: '13px', color: T.textSec, margin: '0 0 16px' }}>Bonjour, voici votre résumé</p>
+          <p style={{ fontSize: '13px', color: T.textSec, margin: '0 0 16px' }}>Bonjour, voici votre resume</p>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button style={s.metricCard} onClick={() => setPage('commandes')}>
               <p style={s.label}>Ventes</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{commandes.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Voir tout →</p>
+              <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Voir tout</p>
             </button>
             <button style={s.metricCard} onClick={() => setPage('catalogue')}>
               <p style={s.label}>Produits</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{produits.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Voir stock →</p>
+              <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Voir stock</p>
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <button style={s.metricCard} onClick={() => setPage('facturation')}>
               <p style={s.label}>Factures</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{factures.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27', marginTop: '2px' }}>{factures.filter(f => f.statut === 'En attente').length} en attente →</p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#EF9F27', marginTop: '2px' }}>{factures.filter(function(f) { return f.statut === 'En attente'; }).length} en attente</p>
             </button>
             <button style={s.metricCard} onClick={() => setPage('livraison')}>
               <p style={s.label}>Livraisons</p>
               <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: T.text }}>{livraisons.length}</p>
-              <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Suivre →</p>
+              <p style={{ margin: 0, fontSize: '11px', color: couleur, marginTop: '2px' }}>Suivre</p>
             </button>
           </div>
           {alertesStock > 0 && (
-            <>
-              <p style={s.sectionTitle}>⚠️ Alertes stock ({alertesStock})</p>
-              {produits.filter(p => p.stock < 6).map(p => (
-                <div key={p.id} onClick={() => setDetail({ ...p, type: 'produit' })} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid #DC2626', cursor: 'pointer' }}>
-                  <div>
-                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{p.nom}</p>
-                    <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>{p.categorie || 'Général'}</p>
+            <div>
+              <p style={s.sectionTitle}>Alertes stock ({alertesStock})</p>
+              {produits.filter(function(p) { return p.stock < 6; }).map(function(p) {
+                return (
+                  <div key={p.id} onClick={() => setDetail({ ...p, type: 'produit' })} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid #DC2626', cursor: 'pointer' }}>
+                    <div>
+                      <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{p.nom}</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>{p.categorie || 'General'}</p>
+                    </div>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#DC2626' }}>{p.stock} restant</span>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#DC2626' }}>{p.stock} restant</span>
-                </div>
-              ))}
-            </>
+                );
+              })}
+            </div>
           )}
           {commandes.length > 0 && (
-            <>
-              <p style={s.sectionTitle}>Dernières ventes</p>
-              {commandes.slice(0, 3).map((cmd, i) => (
-                <div key={cmd.id} onClick={() => setDetail({ ...cmd, type: 'vente', num: commandes.length - i })} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                  <div>
-                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{cmd.client}</p>
-                    <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>{cmd.montant.toLocaleString()} FCFA</p>
+            <div>
+              <p style={s.sectionTitle}>Dernieres ventes</p>
+              {commandes.slice(0, 3).map(function(cmd, i) {
+                return (
+                  <div key={cmd.id} onClick={() => setDetail({ ...cmd, type: 'vente', num: commandes.length - i })} style={{ ...s.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                    <div>
+                      <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{cmd.client}</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>{cmd.montant.toLocaleString()} FCFA</p>
+                    </div>
+                    {badge(cmd.statut)}
                   </div>
-                  {badge(cmd.statut)}
-                </div>
-              ))}
-            </>
+                );
+              })}
+            </div>
           )}
           {commandes.length === 0 && produits.length === 0 && (
             <div style={{ ...s.card, textAlign: 'center', padding: '40px' }}>
               <p style={{ fontSize: '32px', margin: '0 0 8px' }}>🚀</p>
               <p style={{ fontSize: '14px', fontWeight: '600', color: T.text, margin: '0 0 4px' }}>Bienvenue sur LYNA</p>
-              <p style={{ fontSize: '13px', color: T.textSec, margin: 0 }}>Commencez par ajouter vos produits et vos premières ventes</p>
+              <p style={{ fontSize: '13px', color: T.textSec, margin: 0 }}>Commencez par ajouter vos produits et vos premieres ventes</p>
             </div>
           )}
         </div>
@@ -390,14 +398,14 @@ function App() {
         <div style={s.page}>
           <div style={s.card}>
             <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>
-              {editCmd ? '✏️ Modifier la vente' : '+ Nouvelle vente'}
+              {editCmd ? 'Modifier la vente' : 'Nouvelle vente'}
             </p>
             <div style={s.row}>
-              <input style={s.input} placeholder="Nom client" value={nomCmd} onChange={e => setNomCmd(e.target.value)} />
-              <input style={s.input} placeholder="Montant FCFA" value={montantCmd} onChange={e => setMontantCmd(e.target.value)} />
+              <input style={s.input} placeholder="Nom client" value={nomCmd} onChange={function(e) { setNomCmd(e.target.value); }} />
+              <input style={s.input} placeholder="Montant FCFA" value={montantCmd} onChange={function(e) { setMontantCmd(e.target.value); }} />
             </div>
             <div style={s.row}>
-              <input style={{ ...s.input, width: '100%' }} placeholder="Notes (optionnel)" value={notesCmd} onChange={e => setNotesCmd(e.target.value)} />
+              <input style={{ ...s.input, width: '100%' }} placeholder="Notes" value={notesCmd} onChange={function(e) { setNotesCmd(e.target.value); }} />
             </div>
             <div style={s.row}>
               <button style={s.btn()} onClick={ajouterCommande}>{editCmd ? 'Enregistrer' : 'Ajouter'}</button>
@@ -411,32 +419,34 @@ function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={s.sectionTitle}>Registre des ventes</p>
             <span style={{ fontSize: '12px', color: couleur, fontWeight: '600' }}>
-              {commandes.length} · {commandes.reduce((a, c) => a + c.montant, 0).toLocaleString()} FCFA
+              {commandes.length} · {commandes.reduce(function(a, c) { return a + c.montant; }, 0).toLocaleString()} FCFA
             </span>
           </div>
           {commandes.length === 0 && (
-            <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune vente pour l'instant</p>
+            <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune vente</p>
           )}
-          {commandes.map((cmd, i) => (
-            <div key={cmd.id} onClick={() => setDetail({ ...cmd, type: 'vente', num: commandes.length - i })} style={{ ...s.card, cursor: 'pointer', borderLeft: `3px solid ${couleur}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '11px', color: T.textSec, fontWeight: '600' }}>#{commandes.length - i}</span>
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: T.text }}>{cmd.client}</p>
+          {commandes.map(function(cmd, i) {
+            return (
+              <div key={cmd.id} onClick={() => setDetail({ ...cmd, type: 'vente', num: commandes.length - i })} style={{ ...s.card, cursor: 'pointer', borderLeft: '3px solid ' + couleur }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '11px', color: T.textSec, fontWeight: '600' }}>#{commandes.length - i}</span>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: T.text }}>{cmd.client}</p>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '13px', color: couleur, fontWeight: '700' }}>{cmd.montant.toLocaleString()} FCFA</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: T.textSec }}>
+                      {new Date(cmd.created_at).toLocaleDateString('fr-FR')}{cmd.notes ? ' · ' + cmd.notes : ''}
+                    </p>
                   </div>
-                  <p style={{ margin: 0, fontSize: '13px', color: couleur, fontWeight: '700' }}>{cmd.montant.toLocaleString()} FCFA</p>
-                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: T.textSec }}>
-                    {new Date(cmd.created_at).toLocaleDateString('fr-FR')}{cmd.notes ? ' · ' + cmd.notes : ''}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-                  {badge(cmd.statut)}
-                  <span style={{ fontSize: '11px', color: T.textSec }}>Détails →</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                    {badge(cmd.statut)}
+                    <span style={{ fontSize: '11px', color: T.textSec }}>Details</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -447,142 +457,138 @@ function App() {
       {page === 'facturation' && (
         <div style={s.page}>
           <div style={s.card}>
-            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>+ Nouvelle facture</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>Nouvelle facture</p>
             <div style={s.row}>
-              <input style={s.input} placeholder="Client" value={clientFac} onChange={e => setClientFac(e.target.value)} />
-              <input style={s.input} placeholder="Montant FCFA" value={montantFac} onChange={e => setMontantFac(e.target.value)} />
+              <input style={s.input} placeholder="Client" value={clientFac} onChange={function(e) { setClientFac(e.target.value); }} />
+              <input style={s.input} placeholder="Montant FCFA" value={montantFac} onChange={function(e) { setMontantFac(e.target.value); }} />
             </div>
             <div style={s.row}>
-              <select style={{ ...s.input, flex: 1 }} value={moyenFac} onChange={e => setMoyenFac(e.target.value)}>
+              <select style={{ ...s.input, flex: 1 }} value={moyenFac} onChange={function(e) { setMoyenFac(e.target.value); }}>
                 <option>Wave</option>
                 <option>Orange Money</option>
                 <option>Mobile Money</option>
-                <option>Espèces</option>
+                <option>Especes</option>
               </select>
-              <button style={s.btn()} onClick={ajouterFacture}>Créer</button>
+              <button style={s.btn()} onClick={ajouterFacture}>Creer</button>
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={s.sectionTitle}>Factures ({factures.length})</p>
             <span style={{ fontSize: '12px', color: '#EF9F27', fontWeight: '600' }}>
-              {factures.filter(f => f.statut === 'En attente').length} en attente
+              {factures.filter(function(f) { return f.statut === 'En attente'; }).length} en attente
             </span>
           </div>
           {factures.length === 0 && (
-            <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune facture pour l'instant</p>
+            <p style={{ fontSize: '13px', color: T.textSec, textAlign: 'center', padding: '20px' }}>Aucune facture</p>
           )}
-          {factures.map(f => (
-            <div key={f.id} style={{ ...s.card, borderLeft: f.statut === 'En retard' ? '3px solid #DC2626' : f.statut === 'Réglé' ? `3px solid ${couleur}` : `1px solid ${T.border}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{f.client}</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: couleur, fontWeight: '700' }}>{f.montant.toLocaleString()} FCFA · {f.moyen}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: T.textSec }}>{new Date(f.created_at).toLocaleDateString('fr-FR')}</p>
+          {factures.map(function(f) {
+            return (
+              <div key={f.id} style={{ ...s.card, borderLeft: f.statut === 'En retard' ? '3px solid #DC2626' : f.statut === 'Regle' ? '3px solid ' + couleur : '1px solid ' + T.border }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div>
+                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>{f.client}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: couleur, fontWeight: '700' }}>{f.montant.toLocaleString()} FCFA · {f.moyen}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: T.textSec }}>{new Date(f.created_at).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                  {badge(f.statut)}
                 </div>
-                {badge(f.statut)}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {f.statut !== 'Regle' && (
+                    <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majFacture(f.id, 'Regle')}>Regle</button>
+                  )}
+                  {f.statut === 'En attente' && (
+                    <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majFacture(f.id, 'En retard')}>En retard</button>
+                  )}
+                  <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerFacture(f.id)}>Supprimer</button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {f.statut !== 'Réglé' && (
-                  <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majFacture(f.id, 'Réglé')}>✓ Réglé</button>
-                )}
-                {f.statut === 'En attente' && (
-                  <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majFacture(f.id, 'En retard')}>En retard</button>
-                )}
-                <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerFacture(f.id)}>Supprimer</button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {page === 'livraison' && (
         <div style={s.page}>
           <div style={s.card}>
-            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>+ Nouvelle livraison</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px', color: T.text }}>Nouvelle livraison</p>
             <div style={s.row}>
-              <input style={s.input} placeholder="Destination" value={destLiv} onChange={e => setDestLiv(e.target.value)} />
-              <input style={s.input} placeholder="N° WhatsApp chauffeur" value={chauffeurLiv} onChange={e => setChauffeurLiv(e.target.value)} />
+              <input style={s.input} placeholder="Destination" value={destLiv} onChange={function(e) { setDestLiv(e.target.value); }} />
+              <input style={s.input} placeholder="No WhatsApp chauffeur" value={chauffeurLiv} onChange={function(e) { setChauffeurLiv(e.target.value); }} />
             </div>
             <div style={s.row}>
-              <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Heure" value={heureLiv} onChange={e => setHeureLiv(e.target.value)} />
+              <input style={{ ...s.input, maxWidth: '100px' }} placeholder="Heure" value={heureLiv} onChange={function(e) { setHeureLiv(e.target.value); }} />
               <button style={s.btn()} onClick={ajouterLivraison}>Ajouter</button>
             </div>
             <div style={s.row}>
-              <input style={{ ...s.input, flex: 1 }} placeholder="📍 Coller lien position reçu (optionnel)" value={posLiv} onChange={e => setPosLiv(e.target.value)} />
+              <input style={{ ...s.input, flex: 1 }} placeholder="Coller lien position recu" value={posLiv} onChange={function(e) { setPosLiv(e.target.value); }} />
             </div>
           </div>
 
-          <div style={{ ...s.card, background: sombre ? '#1a2a1a' : '#f0faf6', border: `1px solid ${couleur}44`, marginBottom: '16px' }}>
-            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: '600', color: couleur }}>💡 Comment suivre une livraison</p>
-            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>1. Entrez le numéro WhatsApp du chauffeur</p>
-            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>2. Cliquez 💬 WhatsApp pour lui envoyer un message</p>
-            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>3. Le chauffeur partage sa position en temps réel</p>
-            <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>4. Collez le lien reçu et cliquez 📍 Voir position</p>
+          <div style={{ ...s.card, background: sombre ? '#1a2a1a' : '#f0faf6', border: '1px solid ' + couleur + '44', marginBottom: '16px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: '600', color: couleur }}>Comment suivre une livraison</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>1. Entrez le numero WhatsApp du chauffeur</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>2. Cliquez WhatsApp pour lui envoyer un message</p>
+            <p style={{ margin: '0 0 4px', fontSize: '12px', color: T.textSec }}>3. Le chauffeur partage sa position en temps reel</p>
+            <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>4. Collez le lien recu et cliquez Voir position</p>
           </div>
 
           <p style={s.sectionTitle}>Livraisons ({livraisons.length})</p>
           {livraisons.length === 0 && (
             <div style={{ ...s.card, textAlign: 'center', padding: '40px' }}>
               <p style={{ fontSize: '32px', margin: '0 0 8px' }}>🚚</p>
-              <p style={{ fontSize: '13px', color: T.textSec, margin: 0 }}>Aucune livraison pour l'instant</p>
+              <p style={{ fontSize: '13px', color: T.textSec, margin: 0 }}>Aucune livraison</p>
             </div>
           )}
-          {livraisons.map(l => (
-            <div key={l.id} style={{ ...s.card, borderLeft: l.statut === 'En retard' ? '3px solid #DC2626' : l.statut === 'Livré' ? `3px solid ${couleur}` : '3px solid #EF9F27' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>📍 {l.destination}</p>
-                  <p style={{ margin: '0 0 2px', fontSize: '12px', color: T.textSec }}>📱 {l.chauffeur}</p>
-                  <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>🕐 {l.heure}</p>
+          {livraisons.map(function(l) {
+            return (
+              <div key={l.id} style={{ ...s.card, borderLeft: l.statut === 'En retard' ? '3px solid #DC2626' : l.statut === 'Livre' ? '3px solid ' + couleur : '3px solid #EF9F27' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div>
+                    <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '600', color: T.text }}>📍 {l.destination}</p>
+                    <p style={{ margin: '0 0 2px', fontSize: '12px', color: T.textSec }}>📱 {l.chauffeur}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: T.textSec }}>🕐 {l.heure}</p>
+                  </div>
+                  {badge(l.statut)}
                 </div>
-                {badge(l.statut)}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {l.position && (
+                    <a href={l.position} target="_blank" rel="noopener noreferrer" style={{ padding: '5px 12px', background: '#E6F1FB', color: '#0C447C', borderRadius: '8px', fontSize: '11px', fontWeight: '500', textDecoration: 'none', display: 'inline-block' }}>
+                      Voir position
+                    </a>
+                  )}
+                  {l.statut !== 'Livre' && (
+                    <a href={lienWA(l.chauffeur, l.destination)} target="_blank" rel="noopener noreferrer" style={{ padding: '5px 12px', background: '#EAF3DE', color: '#27500A', borderRadius: '8px', fontSize: '11px', fontWeight: '500', textDecoration: 'none', display: 'inline-block' }}>
+                      WhatsApp
+                    </a>
+                  )}
+                  {l.statut === 'En attente' && (
+                    <button style={s.btnSm('#E6F1FB', '#0C447C')} onClick={() => majLivraison(l.id, 'En route')}>En route</button>
+                  )}
+                  {l.statut !== 'Livre' && (
+                    <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majLivraison(l.id, 'Livre')}>Livre</button>
+                  )}
+                  {l.statut !== 'En retard' && l.statut !== 'Livre' && (
+                    <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majLivraison(l.id, 'En retard')}>En retard</button>
+                  )}
+                  {l.statut === 'Livre' && (
+                    <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {l.position && (
-                  
-                    href={l.position}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={s.btnLink('#E6F1FB', '#0C447C')}
-                  >
-                    📍 Voir position
-                  </a>
-                )}
-                {l.statut !== 'Livré' && (
-                  
-                    href={'https://wa.me/' + l.chauffeur.replace(/\D/g, '') + '?text=Bonjour, merci de partager votre position en temps réel pour la livraison à ' + l.destination}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={s.btnLink('#EAF3DE', '#27500A')}
-                  >
-                    💬 WhatsApp
-                  </a>
-                )}
-                {l.statut === 'En attente' && (
-                  <button style={s.btnSm('#E6F1FB', '#0C447C')} onClick={() => majLivraison(l.id, 'En route')}>En route</button>
-                )}
-                {l.statut !== 'Livré' && (
-                  <button style={s.btnSm('#EAF3DE', '#27500A')} onClick={() => majLivraison(l.id, 'Livré')}>Livré ✓</button>
-                )}
-                {l.statut !== 'En retard' && l.statut !== 'Livré' && (
-                  <button style={s.btnSm('#FAEEDA', '#633806')} onClick={() => majLivraison(l.id, 'En retard')}>En retard</button>
-                )}
-                {l.statut === 'Livré' && (
-                  <button style={s.btnSm('#FCEBEB', '#791F1F')} onClick={() => supprimerLivraison(l.id)}>Supprimer</button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       <div style={s.bottomNav}>
-        {navItems.map(item => (
-          <button key={item.id} style={s.navBtn(page === item.id)} onClick={() => setPage(item.id)}>
-            <span style={{ fontSize: '20px' }}>{item.icon}</span>
-            {item.label}
-          </button>
-        ))}
+        {navItems.map(function(item) {
+          return (
+            <button key={item.id} style={s.navBtn(page === item.id)} onClick={() => setPage(item.id)}>
+              <span style={{ fontSize: '20px' }}>{item.icon}</span>
+              {item.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
